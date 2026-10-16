@@ -164,11 +164,22 @@ fun AppBackground() {
 	val backgroundService: BackgroundService = koinInject()
 	val blockAllBackgrounds by backgroundService.blockAllBackgrounds.collectAsState()
 
-	if (blockAllBackgrounds) {
-		AppThemeBackground()
-		return
+	// Fade between the backdrop and the plain theme background when backgrounds get (un)blocked
+	AnimatedContent(
+		targetState = blockAllBackgrounds,
+		transitionSpec = {
+			fadeIn(animationSpec = tween(durationMillis = 300, easing = LinearEasing)) togetherWith
+				fadeOut(animationSpec = tween(durationMillis = 300, easing = LinearEasing))
+		},
+		label = "block_backgrounds_transition"
+	) { blocked ->
+		if (blocked) AppThemeBackground()
+		else BackdropBackground(backgroundService)
 	}
+}
 
+@Composable
+private fun BackdropBackground(backgroundService: BackgroundService) {
 	val currentBackground by backgroundService.currentBackground.collectAsState()
 	val enabled by backgroundService.enabled.collectAsState()
 	val backdropFadingIntensity by backgroundService.backdropFadingIntensity.collectAsState()

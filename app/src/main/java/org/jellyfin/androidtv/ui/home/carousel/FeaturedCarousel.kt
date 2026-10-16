@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,8 +57,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.material3.Button
-import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.CarouselDefaults
 import androidx.tv.material3.CarouselState
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -146,7 +143,8 @@ fun FeaturedCarousel(
 	modifier: Modifier = Modifier,
 	isPaused: Boolean = false,
 	activeIndex: Int = 0,
-	onActiveIndexChanged: (Int) -> Unit = {}
+	onActiveIndexChanged: (Int) -> Unit = {},
+	autoAdvanceWhenFocused: Boolean = false,
 ) {
 	if (items.isEmpty()) {
 		timber.log.Timber.d("FeaturedCarousel: Showing no items message")
@@ -206,12 +204,13 @@ fun FeaturedCarousel(
 		}
 	}
 
-	LaunchedEffect(isPaused, autoScrollEnabled, isCarouselFocused) {
-		if (items.size > 1 && autoScrollEnabled && !isCarouselFocused && !isPaused) {
+	val focusBlocksAutoScroll = isCarouselFocused && !autoAdvanceWhenFocused
+	LaunchedEffect(isPaused, autoScrollEnabled, focusBlocksAutoScroll) {
+		if (items.size > 1 && autoScrollEnabled && !focusBlocksAutoScroll && !isPaused) {
 			while (true) {
 				kotlinx.coroutines.delay(8000L) // 8 seconds delay
 
-				if (autoScrollEnabled && !isCarouselFocused && !isPaused) {
+				if (autoScrollEnabled && !focusBlocksAutoScroll && !isPaused) {
 					val newIndex = (currentIndex + 1) % items.size
 					currentIndex = newIndex
 					actualCarouselIndex = newIndex
@@ -333,7 +332,6 @@ private fun Android12CompatibleCarousel(
 			CarouselItemForeground(
 				item = currentItem,
 				isCarouselFocused = carouselHasFocus,
-				onItemSelected = { onItemSelected(currentItem) },
 				modifier = Modifier.fillMaxSize()
 			)
 
@@ -383,15 +381,17 @@ private fun BoxScope.CarouselIndicator(
 private fun CarouselItemForeground(
 	item: CarouselItem,
 	isCarouselFocused: Boolean = false,
-	onItemSelected: () -> Unit,
 	modifier: Modifier = Modifier
 ) {
 	val api = koinInject<ApiClient>()
 
-	Box(
+	BoxWithConstraints(
 		modifier = modifier,
 		contentAlignment = Alignment.BottomStart
 	) {
+		// Text runs up to where the backdrop image fades in, so wider carousels show more text
+		val textWidth = (maxWidth - BACKDROP_WIDTH + TEXT_OVERLAP_INTO_BACKDROP).coerceAtLeast(200.dp)
+
 		item.logoUrl?.let { logoUrl ->
 			Box(
 				modifier = Modifier
@@ -426,7 +426,7 @@ private fun CarouselItemForeground(
 					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
 					color = Color.White,
-					modifier = Modifier.fillMaxWidth(0.465f)
+					modifier = Modifier.width(textWidth)
 
 				)
 			}
@@ -435,7 +435,7 @@ private fun CarouselItemForeground(
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(start = 28.dp, top = 110.dp, bottom = 50.dp, end = 0.dp),
+				.padding(start = 28.dp, top = 110.dp, bottom = 12.dp, end = 0.dp),
 			verticalArrangement = Arrangement.Top,
 			horizontalAlignment = Alignment.Start
 		) {
@@ -567,24 +567,16 @@ private fun CarouselItemForeground(
 							blurRadius = 4f
 						)
 					),
-					maxLines = 2,
+					maxLines = 3,
 					overflow = TextOverflow.Ellipsis,
 					modifier = Modifier
 						.padding(top = 8.dp)
-						.fillMaxWidth(0.465f)
+						.width(textWidth)
 				)
 			} else {
 				// Debug logging for missing description
 				timber.log.Timber.w("No description available for item: ${item.title}")
 			}
-		}
-
-		Box(
-			modifier = Modifier
-				.align(Alignment.BottomStart)
-				.padding(start = 19.dp, bottom = 12.dp)
-		) {
-			WatchNowButton(onItemSelected = onItemSelected)
 		}
 	}
 }
@@ -604,10 +596,15 @@ private fun CarouselItemBackground(item: CarouselItem, modifier: Modifier = Modi
 
 	val fadingColor = getBackdropFadingColor()
 
-	Box(modifier = modifier.fillMaxSize()) {
+	BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+		// Fade into the left edge of the backdrop image, wherever it starts
+		val imageStart = maxWidth - BACKDROP_WIDTH
+		val fadeSolidUntil = ((imageStart + FADE_SOLID_INTO_BACKDROP) / maxWidth).coerceIn(0f, 1f)
+		val fadeClearFrom = ((imageStart + FADE_CLEAR_INTO_BACKDROP) / maxWidth).coerceIn(fadeSolidUntil, 1f)
+
 		AsyncImage(
 			modifier = androidx.compose.ui.Modifier
-				.width(600.dp)
+				.width(BACKDROP_WIDTH)
 				.aspectRatio(16f / 10f)
 				.align(androidx.compose.ui.Alignment.TopEnd),
 			url = imageUrl,
@@ -615,14 +612,16 @@ private fun CarouselItemBackground(item: CarouselItem, modifier: Modifier = Modi
 		)
 
 		//  This fading effect shit breaks if you change even a bit, keep the sweet spot as is
+		//  (at the featured carousel's 930dp width the stops were 0.42 and 0.49, the fade is
+		//  now 50% wider towards the image)
 		Box(
 			modifier = androidx.compose.ui.Modifier
 				.fillMaxSize()
 				.background(
 					brush = Brush.horizontalGradient(
 						0f to fadingColor,
-						0.42f to fadingColor,
-						0.49f to Color.Transparent,
+						fadeSolidUntil to fadingColor,
+						fadeClearFrom to Color.Transparent,
 						1f to Color.Transparent
 					)
 				)
@@ -630,42 +629,7 @@ private fun CarouselItemBackground(item: CarouselItem, modifier: Modifier = Modi
 	}
 }
 
-@Composable
-private fun WatchNowButton(onItemSelected: () -> Unit) {
-	val buttonFocusRequester = remember { FocusRequester() }
-
-	Button(
-		onClick = onItemSelected,
-		modifier = Modifier
-			.padding(top = 15.dp)
-			.focusRequester(buttonFocusRequester),
-		contentPadding = androidx.compose.foundation.layout.PaddingValues(
-			start = 0.9.dp,
-			end = 15.3.dp,
-			bottom = 0.dp
-		),
-		shape = ButtonDefaults.shape(shape = RoundedCornerShape(14.dp)),
-		colors = ButtonDefaults.colors(
-			containerColor = Color(0xFFFFFFFF).copy(alpha = 0.8f),
-			contentColor = Color.Black,
-			focusedContentColor = Color.White.copy(alpha = 0.7f),
-		),
-		scale = ButtonDefaults.scale(scale = 0.85f),
-		glow = ButtonDefaults.glow()
-	) {
-		Icon(
-			imageVector = Icons.Outlined.PlayArrow,
-			contentDescription = null,
-			modifier = Modifier.size(22.5.dp)
-
-		)
-		Spacer(Modifier.size(3.6.dp))
-		Text(
-			text = "Watch Now",
-			style = MaterialTheme.typography.titleMedium.copy(
-				fontSize = 13.8.sp,
-				fontWeight = FontWeight.Medium
-			)
-		)
-	}
-}
+private val BACKDROP_WIDTH = 600.dp
+private val FADE_SOLID_INTO_BACKDROP = 60.6.dp
+private val FADE_CLEAR_INTO_BACKDROP = 158.25.dp
+private val TEXT_OVERLAP_INTO_BACKDROP = 102.dp

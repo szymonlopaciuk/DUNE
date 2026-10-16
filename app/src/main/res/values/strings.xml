@@ -94,6 +94,12 @@
     <string name="genre_row_i">Genre Row %1$d</string>
     <string name="genre_item_limit">Item Limit</string>
     <string name="genre_row_prefs">Configure custom sections</string>
+    <string name="home_section_display_hidden">Hidden</string>
+    <string name="home_section_display_row">Row</string>
+    <string name="home_section_display_carousel">Carousel</string>
+    <string name="home_custom_sections_general">General</string>
+    <string name="home_custom_sections_genres">Genres</string>
+    <string name="home_custom_sections_other">Other sections</string>
     <string name="lbl_genre_row_loading">Loading genres…</string>
     <string name="genre_row_movie">Movie Genres</string>
     <string name="genre_row_tvshow">TV Show Genres</string>

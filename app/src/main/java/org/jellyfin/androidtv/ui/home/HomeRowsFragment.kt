@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import androidx.leanback.app.RowsSupportFragment
+import androidx.leanback.widget.ClassPresenterSelector
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ObjectAdapter
 import androidx.leanback.widget.OnItemViewClickedListener
@@ -40,16 +41,20 @@ import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.browsing.CompositeClickedListener
 import org.jellyfin.androidtv.ui.browsing.CompositeSelectedListener
+import org.jellyfin.androidtv.ui.home.carousel.GenreCarouselRow
+import org.jellyfin.androidtv.ui.home.carousel.GenreCarouselRowPresenter
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem
 import org.jellyfin.androidtv.ui.itemhandling.ItemLauncher
 import org.jellyfin.androidtv.ui.itemhandling.ItemRowAdapter
 import org.jellyfin.androidtv.ui.itemhandling.refreshItem
+import org.jellyfin.androidtv.ui.navigation.Destinations
 import org.jellyfin.androidtv.ui.navigation.NavigationRepository
 import org.jellyfin.androidtv.ui.playback.AudioEventListener
 import org.jellyfin.androidtv.ui.playback.MediaManager
 import org.jellyfin.androidtv.ui.presentation.CardPresenter
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter
 import org.jellyfin.androidtv.ui.presentation.PositionableListRowPresenter
+import org.jellyfin.androidtv.util.ImageHelper
 import org.jellyfin.androidtv.util.KeyProcessor
 import org.jellyfin.androidtv.util.apiclient.getUrl
 import org.jellyfin.androidtv.util.apiclient.itemImages
@@ -76,6 +81,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val navigationRepository by inject<NavigationRepository>()
 	private val itemLauncher by inject<ItemLauncher>()
 	private val keyProcessor by inject<KeyProcessor>()
+	private val imageHelper by inject<ImageHelper>()
 
 	private val userPreferences by inject<UserPreferences>()
 	private val helper by lazy { HomeFragmentHelper(requireContext(), userRepository, userPreferences) }
@@ -88,7 +94,7 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 	private val notificationsRow by lazy { NotificationsHomeFragmentRow(lifecycleScope, notificationsRepository) }
 	private val nowPlaying by lazy { HomeFragmentNowPlayingRow(mediaManager) }
 	private val liveTVRow by lazy { HomeFragmentLiveTVRow(requireActivity(), userRepository, navigationRepository) }
-	private val genreManager by lazy { GenreManager(requireContext(), userRepository, userPreferences, userSettingPreferences, api) }
+	private val genreManager by lazy { GenreManager(requireContext(), userRepository, userPreferences, userSettingPreferences, api, imageHelper) }
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -96,8 +102,17 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
 		// Create a custom row presenter that keeps headers always visible
 		val rowPresenter = PositionableListRowPresenter(requireContext(), false, true)
 
-		// Set the adapter with our custom row presenter
-		adapter = MutableObjectAdapter<Row>(rowPresenter) as ObjectAdapter
+		// Genre carousels use their own presenter, all other rows are list rows
+		val genreCarouselPresenter = GenreCarouselRowPresenter(
+			onItemClicked = { item ->
+				item.id?.let { navigationRepository.navigate(Destinations.itemDetails(it)) }
+			},
+		)
+		val presenterSelector = ClassPresenterSelector()
+			.addClassPresenter(ListRow::class.java, rowPresenter)
+			.addClassPresenter(GenreCarouselRow::class.java, genreCarouselPresenter)
+
+		adapter = MutableObjectAdapter<Row>(presenterSelector) as ObjectAdapter
 
 		lifecycleScope.launch(Dispatchers.IO) {
 			val startTime = System.currentTimeMillis()
@@ -462,6 +477,15 @@ private inner class ItemViewSelectedListener : OnItemViewSelectedListener {
     ) {
         ensureViewsInitialized()
 
+        // Genre carousels show their own item details; the home screen fades out the info area
+        // and backdrop, so leave their content in place while it fades
+        if (row is GenreCarouselRow) {
+            (parentFragment as? HomeFragment)?.onGenreCarouselSelected()
+            currentItem = null
+            currentRow = null
+            return
+        }
+
         // Check if the item is from the Media Folders row or has the media_folders_item tag
         val isMediaFolderItem = homeFragmentViewsRow.isMediaFoldersItem(item) ||
                               (item is BaseRowItem && itemViewHolder?.view?.tag == "media_folders_item")
@@ -502,15 +526,20 @@ private inner class ItemViewSelectedListener : OnItemViewSelectedListener {
                 itemRowAdapter?.loadMoreItemsIfNeeded(itemRowAdapter.indexOf(item))
             }
 
-            updateLogoAndTitle(item)
-            summaryView?.setText(item.getSummary(requireContext()) ?: "")
-            infoRowView?.removeAllViews()
-            infoRowView?.let { view ->
-                org.jellyfin.androidtv.util.InfoLayoutHelper.addInfoRow(requireContext(), item.baseItem, view, true)
-            }
-
-            backgroundService.setBackground(item.baseItem)
+            showItemInfo(item)
         }
     }
 }
+
+    private fun showItemInfo(item: BaseRowItem) {
+        updateLogoAndTitle(item)
+        summaryView?.setText(item.getSummary(requireContext()) ?: "")
+        infoRowView?.removeAllViews()
+        infoRowView?.let { view ->
+            org.jellyfin.androidtv.util.InfoLayoutHelper.addInfoRow(requireContext(), item.baseItem, view, true)
+        }
+
+        backgroundService.setBackground(item.baseItem)
+    }
+
 }

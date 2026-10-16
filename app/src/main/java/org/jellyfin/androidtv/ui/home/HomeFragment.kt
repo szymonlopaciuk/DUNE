@@ -30,6 +30,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -79,9 +80,11 @@ class HomeFragment : Fragment() {
     private var interactionDelayRunnable: Runnable? = null
     private var _isCarouselPaused = mutableStateOf(false)
     val isCarouselPaused: Boolean get() = _isCarouselPaused.value
-    private var isBrowsingRows = false
+    private var topAreaMode = TopAreaMode.FEATURED
     private var isFocusInRows = false
     private var selectedRowItem: BaseItemDto? = null
+    private var isGenreCarouselSelected = false
+    private var collapsedRowsHeight = 0
     private var focusChangeListener: android.view.ViewTreeObserver.OnGlobalFocusChangeListener? = null
 
     private fun findRecyclerViews(viewGroup: ViewGroup): List<RecyclerView> {
@@ -162,7 +165,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         isReadyForInteraction = true
 
-        _isCarouselPaused.value = isBrowsingRows
+        _isCarouselPaused.value = topAreaMode != TopAreaMode.FEATURED
 
         preloadHomeScreenImages()
 
@@ -389,9 +392,10 @@ class HomeFragment : Fragment() {
             )
         }
 
-        if (!useClassicLayout) {
-            setupCarouselInfoSwitching(view)
+        setupTopAreaSwitching(view)
+        topAreaMode = if (useClassicLayout) TopAreaMode.ITEM_INFO else TopAreaMode.FEATURED
 
+        if (!useClassicLayout) {
             modernBinding.carouselContainer?.setContent {
             val carouselUiState by carouselViewModel.uiState.collectAsState()
 
@@ -497,13 +501,29 @@ class HomeFragment : Fragment() {
     }
 
     /**
+     * What the area above the home rows shows.
+     */
+    private enum class TopAreaMode {
+        /** Modern layout: the featured carousel, while nothing is selected. */
+        FEATURED,
+
+        /** Info panel and backdrop for the selected item. */
+        ITEM_INFO,
+
+        /** A genre carousel is selected: nothing above it, the rows expand to show the row above. */
+        ROWS_EXPANDED,
+    }
+
+    /**
      * In the modern layout the carousel acts as a suggestion box while nothing is selected.
      * Once the user starts moving through the rows it gives way to an info panel and backdrop
      * for the focused item (like the classic layout). It comes back when focus leaves the rows
      * or the selected item has nothing to show (e.g. library buttons).
      */
-    private fun setupCarouselInfoSwitching(root: View) {
-        val contentView = modernBinding.contentView
+    private fun setupTopAreaSwitching(root: View) {
+        val contentView = currentContentView() ?: return
+        collapsedRowsHeight = contentView.layoutParams.height
+        _modernBinding?.infoPanel?.visibility = View.VISIBLE
 
         val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { oldFocus, newFocus ->
             val newInRows = newFocus != null && isDescendantOf(newFocus, contentView)
@@ -515,11 +535,14 @@ class HomeFragment : Fragment() {
                 oldFocus == null -> isFocusInRows
                 else -> true
             }
-            updateBrowsingRows()
+            updateTopArea()
         }
         focusChangeListener = listener
         root.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
     }
+
+    private fun currentContentView(): View? =
+        if (useClassicLayout) _classicBinding?.contentView else _modernBinding?.contentView
 
     private fun isDescendantOf(view: View, ancestor: View): Boolean {
         var current: View? = view
@@ -536,42 +559,76 @@ class HomeFragment : Fragment() {
      */
     fun onRowItemSelected(item: BaseItemDto?) {
         selectedRowItem = item
-        updateBrowsingRows()
+        isGenreCarouselSelected = false
+        updateTopArea()
     }
 
-    private fun updateBrowsingRows() {
-        if (useClassicLayout) return
-        val browsing = isFocusInRows && selectedRowItem != null
-        if (browsing == isBrowsingRows) return
-        isBrowsingRows = browsing
-        _isCarouselPaused.value = browsing || !isResumed
+    /** Called by [HomeRowsFragment] when a genre carousel row is selected. */
+    fun onGenreCarouselSelected() {
+        selectedRowItem = null
+        isGenreCarouselSelected = true
+        isFocusInRows = true
+        updateTopArea()
+    }
+
+    private fun updateTopArea() {
+        val mode = when {
+            isGenreCarouselSelected && isFocusInRows -> TopAreaMode.ROWS_EXPANDED
+            useClassicLayout -> TopAreaMode.ITEM_INFO
+            isFocusInRows && selectedRowItem != null -> TopAreaMode.ITEM_INFO
+            else -> TopAreaMode.FEATURED
+        }
+        if (mode == topAreaMode) return
+        topAreaMode = mode
+        _isCarouselPaused.value = mode != TopAreaMode.FEATURED || !isResumed
         refreshBackgroundState()
 
-        val binding = _modernBinding ?: return
-        // The carousel stays VISIBLE (only transparent) so it remains focusable:
-        // pressing up from the top row brings it back.
-        crossFade(binding.carouselContainer, show = !browsing, keepFocusable = true)
-        crossFade(binding.infoPanel, show = browsing, keepFocusable = false)
+        _modernBinding?.let { binding ->
+            // The carousel stays VISIBLE (only transparent) so it remains focusable:
+            // pressing up from the top row brings it back.
+            fadeTo(binding.carouselContainer, mode == TopAreaMode.FEATURED)
+            fadeTo(binding.infoPanel, mode == TopAreaMode.ITEM_INFO)
+        }
+        _classicBinding?.let { binding ->
+            listOf(binding.logo, binding.title, binding.infoRow, binding.summary).forEach { view ->
+                fadeTo(view, mode != TopAreaMode.ROWS_EXPANDED)
+            }
+        }
+
+        setRowsExpanded(mode == TopAreaMode.ROWS_EXPANDED)
     }
 
-    private fun crossFade(target: View?, show: Boolean, keepFocusable: Boolean) {
+    /** Grow the rows up to the toolbar, so the row above a genre carousel stays visible. */
+    private fun setRowsExpanded(expanded: Boolean) {
+        val root = view as? ViewGroup ?: return
+        val contentView = currentContentView() ?: return
+        val toolbarBottom = (if (useClassicLayout) _classicBinding?.toolbar else _modernBinding?.innerConstraint)?.bottom ?: 0
+        val targetHeight = if (expanded) root.height - toolbarBottom else collapsedRowsHeight
+        if (targetHeight <= 0 || contentView.layoutParams.height == targetHeight) return
+
+        android.transition.TransitionManager.beginDelayedTransition(
+            root,
+            android.transition.ChangeBounds()
+                .addTarget(contentView)
+                .setDuration(CROSSFADE_DURATION_MS)
+        )
+        contentView.updateLayoutParams { height = targetHeight }
+    }
+
+    private fun fadeTo(target: View?, visible: Boolean) {
         target ?: return
         target.animate().cancel()
-        if (show) {
-            target.visibility = View.VISIBLE
-            target.animate().alpha(1f).setDuration(CROSSFADE_DURATION_MS).start()
-        } else {
-            target.animate().alpha(0f).setDuration(CROSSFADE_DURATION_MS).withEndAction {
-                if (!keepFocusable) target.visibility = View.INVISIBLE
-            }.start()
-        }
+        target.animate().alpha(if (visible) 1f else 0f).setDuration(CROSSFADE_DURATION_MS).start()
     }
 
     private fun refreshBackgroundState() {
         try {
-            if (useClassicLayout) {
+            if (topAreaMode == TopAreaMode.ROWS_EXPANDED) {
+                // The genre carousel already shows its items, a backdrop would only repeat them
+                backgroundService.blockAllBackgrounds()
+            } else if (useClassicLayout) {
                 backgroundService.unblockAllBackgrounds()
-            } else if (isBrowsingRows) {
+            } else if (topAreaMode == TopAreaMode.ITEM_INFO) {
                 // The rows set the backdrop while backgrounds were blocked, so apply it now
                 backgroundService.unblockAllBackgrounds()
                 backgroundService.setBackground(selectedRowItem)

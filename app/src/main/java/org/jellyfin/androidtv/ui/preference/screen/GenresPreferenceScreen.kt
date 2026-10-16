@@ -5,17 +5,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.jellyfin.androidtv.R
-import org.jellyfin.androidtv.constant.GenreRowType
+import org.jellyfin.androidtv.constant.HomeCustomSection
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
+import org.jellyfin.androidtv.preference.constant.GenreSortBy
 
 @Composable
 fun GenresPreferenceScreenCompose(
@@ -40,6 +43,11 @@ fun GenresPreferenceScreenCompose(
         preferences = userPreferences
     )
 
+    val (genreSortBy, setGenreSortBy) = rememberEnumPreferenceState(
+        preference = UserPreferences.genreSortBy,
+        preferences = userPreferences
+    )
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -47,7 +55,7 @@ fun GenresPreferenceScreenCompose(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            PreferenceHeader(context.getString(R.string.home_custom_sections))
+            PreferenceHeader(context.getString(R.string.home_custom_sections_general))
         }
 
         item {
@@ -56,46 +64,71 @@ fun GenresPreferenceScreenCompose(
                 value = genreItemLimit,
                 range = 5..35,
                 onValueChange = setGenreItemLimit,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(firstItemFocusRequester),
                 step = 1
             )
         }
 
-		// Home sections 0-9
-		val genreRowPreferences = listOf(
-			userSettingPreferences.genrerow0,
-			userSettingPreferences.genrerow1,
-			userSettingPreferences.genrerow2,
-			userSettingPreferences.genrerow3,
-			userSettingPreferences.genrerow4,
-			userSettingPreferences.genrerow5,
-			userSettingPreferences.genrerow6,
-			userSettingPreferences.genrerow7,
-			userSettingPreferences.genrerow8,
-			userSettingPreferences.genrerow9
-		)
+        item {
+            EnumPreference(
+                title = context.getString(R.string.pref_genre_sort_by),
+                value = genreSortBy,
+                onValueChange = setGenreSortBy,
+                options = GenreSortBy.entries,
+                optionLabel = { context.getString(it.nameRes) }
+            )
+        }
 
-		genreRowPreferences.forEachIndexed { index, sectionPref ->
-			item {
-				val (sectionValue, setSectionValue) = rememberEnumPreferenceState(
-					preference = sectionPref,
-					preferences = userSettingPreferences
-				)
-				EnumPreference(
-					title = context.getString(R.string.home_section_i, index + 1),
-					value = sectionValue,
-					onValueChange = setSectionValue,
-					options = GenreRowType.entries,
-					modifier = Modifier,
-					description = context.getString(sectionValue.nameRes),
-					optionLabel = { context.getString(it.nameRes) }
-				)
-			}
-		}
+        item {
+            PreferenceHeader(context.getString(R.string.home_custom_sections_genres))
+        }
 
+        items(HomeCustomSection.entries.filter { it.isGenre }) { section ->
+            CustomSectionPreference(section, userSettingPreferences)
+        }
 
+        item {
+            PreferenceHeader(context.getString(R.string.home_custom_sections_other))
+        }
 
-		}
+        items(HomeCustomSection.entries.filter { !it.isGenre }) { section ->
+            CustomSectionPreference(section, userSettingPreferences)
+        }
+
+        item {
+            val (showMusicVideos, setShowMusicVideos) = rememberPreferenceState(
+                preference = userSettingPreferences.showMusicVideosRow,
+                preferences = userSettingPreferences
+            )
+            SwitchPreference(
+                title = context.getString(R.string.show_music_videos_row),
+                checked = showMusicVideos,
+                preference = userSettingPreferences.showMusicVideosRow,
+                onCheckedChange = setShowMusicVideos
+            )
+        }
     }
+}
 
+@Composable
+private fun CustomSectionPreference(
+    section: HomeCustomSection,
+    userSettingPreferences: UserSettingPreferences
+) {
+    val context = LocalContext.current
+    val preference = remember(section) { userSettingPreferences.customSectionDisplay(section) }
+    val (mode, setMode) = rememberEnumPreferenceState(
+        preference = preference,
+        preferences = userSettingPreferences
+    )
 
+    EnumPreference(
+        title = section.getTitle(context),
+        value = mode,
+        onValueChange = setMode,
+        options = section.displayModes,
+        optionLabel = { context.getString(it.nameRes) }
+    )
+}
