@@ -36,7 +36,7 @@
         android:id="@+id/content_view"
         android:name="org.jellyfin.androidtv.ui.home.HomeRowsFragment"
         android:layout_width="974dp"
-        android:layout_height="213dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="1dp"
         android:contentDescription="@string/home_content_description"
@@ -46,6 +46,7 @@
         android:focusedByDefault="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/innerConstraint"
         tools:ignore="VisualLintBounds"
         tools:layout_marginStart="-70dp">
 

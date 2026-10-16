@@ -30,7 +30,6 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -39,6 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.auth.repository.SessionRepository
 import org.jellyfin.androidtv.databinding.FragmentHomeBinding
 import org.jellyfin.androidtv.databinding.FragmentHomeClassicBinding
@@ -61,6 +61,7 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
+import kotlin.math.roundToInt
 
 class HomeFragment : Fragment() {
     private val api: ApiClient by inject()
@@ -84,7 +85,9 @@ class HomeFragment : Fragment() {
     private var isFocusInRows = false
     private var selectedRowItem: BaseItemDto? = null
     private var isGenreCarouselSelected = false
-    private var collapsedRowsHeight = 0
+    private var gridBasePaddingTop: Int? = null
+    private var rowsClipTop = 0
+    private var rowsClipAnimator: android.animation.ValueAnimator? = null
     private var focusChangeListener: android.view.ViewTreeObserver.OnGlobalFocusChangeListener? = null
 
     private fun findRecyclerViews(viewGroup: ViewGroup): List<RecyclerView> {
@@ -207,6 +210,9 @@ class HomeFragment : Fragment() {
                 view?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnGlobalFocusChangeListener(listener)
             }
             focusChangeListener = null
+            rowsClipAnimator?.cancel()
+            rowsClipAnimator = null
+            gridBasePaddingTop = null
 
             _modernBinding = null
             _classicBinding = null
@@ -522,7 +528,7 @@ class HomeFragment : Fragment() {
      */
     private fun setupTopAreaSwitching(root: View) {
         val contentView = currentContentView() ?: return
-        collapsedRowsHeight = contentView.layoutParams.height
+        setupRowsWindow(contentView)
         _modernBinding?.infoPanel?.visibility = View.VISIBLE
 
         val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { oldFocus, newFocus ->
@@ -595,24 +601,64 @@ class HomeFragment : Fragment() {
             }
         }
 
-        setRowsExpanded(mode == TopAreaMode.ROWS_EXPANDED)
+        applyRowsWindow(animate = true)
     }
 
-    /** Grow the rows up to the toolbar, so the row above a genre carousel stays visible. */
-    private fun setRowsExpanded(expanded: Boolean) {
-        val root = view as? ViewGroup ?: return
-        val contentView = currentContentView() ?: return
-        val toolbarBottom = (if (useClassicLayout) _classicBinding?.toolbar else _modernBinding?.innerConstraint)?.bottom ?: 0
-        val targetHeight = if (expanded) root.height - toolbarBottom else collapsedRowsHeight
-        if (targetHeight <= 0 || contentView.layoutParams.height == targetHeight) return
+    /**
+     * The rows fill the space below the toolbar, but normally only their bottom part (the height
+     * of [collapsedRowsHeightDp]) is shown, with the area above it left to the carousel or info
+     * panel. The grid aligns the selected row to the middle of that bottom part (with top padding
+     * so the first row stops at its top edge), and the rest is clipped. With a genre carousel selected the clip is animated away to reveal the
+     * row above. Nothing is re-laid out, so moving between rows stays a plain scroll.
+     */
+    private fun setupRowsWindow(contentView: View) {
+        contentView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyRowsWindow(animate = false) }
+    }
 
-        android.transition.TransitionManager.beginDelayedTransition(
-            root,
-            android.transition.ChangeBounds()
-                .addTarget(contentView)
-                .setDuration(CROSSFADE_DURATION_MS)
-        )
-        contentView.updateLayoutParams { height = targetHeight }
+    private val collapsedRowsHeightDp get() = if (useClassicLayout) 250 else 213
+
+    private fun applyRowsWindow(animate: Boolean) {
+        val contentView = currentContentView() ?: return
+        if (contentView.height == 0) return
+        val collapsedTop = (contentView.height - (collapsedRowsHeightDp * resources.displayMetrics.density).roundToInt())
+            .coerceAtLeast(0)
+
+        val rowsFragment = childFragmentManager.findFragmentById(R.id.content_view) as? HomeRowsFragment
+        rowsFragment?.verticalGridView?.let { grid ->
+            val basePaddingTop = gridBasePaddingTop ?: grid.paddingTop.also { gridBasePaddingTop = it }
+            val paddingTop = basePaddingTop + collapsedTop
+            if (grid.paddingTop != paddingTop) {
+                grid.clipToPadding = false
+                grid.setPadding(grid.paddingLeft, paddingTop, grid.paddingRight, grid.paddingBottom)
+            }
+
+            // Leanback's keyline ignores padding: it's offset + percent of the full height. Center
+            // it on the visible bottom part: collapsedTop + (height - collapsedTop) / 2
+            val alignmentOffset = collapsedTop / 2
+            if (grid.windowAlignmentOffset != alignmentOffset || grid.windowAlignmentOffsetPercent != 50f) {
+                grid.windowAlignmentOffset = alignmentOffset
+                grid.windowAlignmentOffsetPercent = 50f
+            }
+        }
+
+        val targetClipTop = if (topAreaMode == TopAreaMode.ROWS_EXPANDED) 0 else collapsedTop
+        if (animate) {
+            rowsClipAnimator?.cancel()
+            rowsClipAnimator = android.animation.ValueAnimator.ofInt(rowsClipTop, targetClipTop).apply {
+                duration = CROSSFADE_DURATION_MS
+                addUpdateListener { setRowsClipTop(contentView, it.animatedValue as Int) }
+                start()
+            }
+        } else if (rowsClipAnimator?.isRunning != true) {
+            setRowsClipTop(contentView, targetClipTop)
+        }
+    }
+
+    private fun setRowsClipTop(contentView: View, clipTop: Int) {
+        rowsClipTop = clipTop
+        val bounds = contentView.clipBounds ?: android.graphics.Rect()
+        bounds.set(0, clipTop, contentView.width, contentView.height)
+        contentView.clipBounds = bounds
     }
 
     private fun fadeTo(target: View?, visible: Boolean) {
