@@ -2,6 +2,9 @@ package org.jellyfin.androidtv.ui.preference.screen
 
 import android.R
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.TypedValue
+import android.view.ContextThemeWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +39,12 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +57,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -59,15 +69,39 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.preference.PreferenceManager
+import org.jellyfin.androidtv.preference.UserPreferences
+import org.jellyfin.androidtv.preference.constant.AppTheme
+import org.jellyfin.androidtv.util.style
+import org.koin.compose.koinInject
 import org.jellyfin.preference.Preference
 import org.jellyfin.preference.store.PreferenceStore
+
+/**
+ * The theme-dependent colors of the preference screens, resolved from the app theme by
+ * [PreferencesRoot].
+ */
+@Immutable
+data class PreferenceColors(
+	val primary: Color,
+	val panelBackground: Color,
+) {
+	companion object {
+		val Default = PreferenceColors(
+			primary = Color(0xFF5000C7),
+			panelBackground = Color(0xFF171616),
+		)
+	}
+}
+
+val LocalPreferenceColors = staticCompositionLocalOf { PreferenceColors.Default }
 
 object Colors {
 	val Background = Color(0xFF1F1F1F)
 	val Surface = Color(0x25737373)
-	val SurfaceVariant = Color(0x076000FF)
-	val Primary = Color(0xFF5000C7)
-	val PrimaryVariant = Color(0xBC6000FF)
+	val SurfaceVariant @Composable @ReadOnlyComposable get() = Primary.copy(alpha = 0x07 / 255f)
+	val Primary @Composable @ReadOnlyComposable get() = LocalPreferenceColors.current.primary
+	val PrimaryVariant @Composable @ReadOnlyComposable get() = Primary.copy(alpha = 0xBC / 255f)
 	val OnSurface = Color(0xFFE5E5E5)
 	val OnSurfaceVariant = Color(0xFFFFFFFF)
 	val Divider = Color(0xDF3D3D3D)
@@ -75,11 +109,72 @@ object Colors {
 	val FocusedBorder = Color(0xFFFFFFFF)
 	val DisabledContent = Color(0xFF666666)
 	val ScrimBackground = Color(0x00000000)
-	val PanelBackground = Color(0xFF171616)
+	val PanelBackground @Composable @ReadOnlyComposable get() = LocalPreferenceColors.current.panelBackground
+}
+
+/**
+ * Resolve the preference colors from the style of [appTheme]. Themes don't all define the same
+ * attributes, so fall back to neutral colors where an attribute is missing or unusable.
+ */
+private fun resolvePreferenceColors(context: Context, appTheme: AppTheme): PreferenceColors {
+	val themed = ContextThemeWrapper(context, appTheme.style)
+
+	fun solidColor(attr: Int): Color? {
+		val value = TypedValue()
+		if (!themed.theme.resolveAttribute(attr, value, true)) return null
+		if (value.type < TypedValue.TYPE_FIRST_COLOR_INT || value.type > TypedValue.TYPE_LAST_COLOR_INT) return null
+		return Color(value.data).copy(alpha = 1f)
+	}
+
+	// Themes without an accent (e.g. the OLED dark theme) use black as primary color, which
+	// would be invisible on the panel
+	val primary = listOf(R.attr.colorPrimary, androidx.appcompat.R.attr.colorPrimary)
+		.firstNotNullOfOrNull { attr -> solidColor(attr)?.takeIf { it.luminance() > 0.02f } }
+		?: Color(0xFFBDBDBD)
+
+	val panelBackground = listOf(
+		org.jellyfin.androidtv.R.attr.defaultBackground,
+		org.jellyfin.androidtv.R.attr.surfaceColor,
+		org.jellyfin.androidtv.R.attr.popupMenuBackground,
+	).firstNotNullOfOrNull(::solidColor) ?: PreferenceColors.Default.panelBackground
+
+	return PreferenceColors(primary = primary, panelBackground = panelBackground)
+}
+
+/**
+ * The current app theme, updated when it's changed from the preferences.
+ */
+@Composable
+private fun rememberAppTheme(): AppTheme {
+	val context = LocalContext.current
+	val userPreferences = koinInject<UserPreferences>()
+	var appTheme by remember { mutableStateOf(userPreferences[UserPreferences.appTheme]) }
+
+	DisposableEffect(userPreferences) {
+		val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == UserPreferences.appTheme.key) appTheme = userPreferences[UserPreferences.appTheme]
+		}
+		sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+		onDispose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+	}
+
+	return appTheme
 }
 
 @Composable
 fun PreferencesRoot(content: @Composable () -> Unit) {
+	val context = LocalContext.current
+	val appTheme = rememberAppTheme()
+	val colors = remember(appTheme) { resolvePreferenceColors(context, appTheme) }
+
+	CompositionLocalProvider(LocalPreferenceColors provides colors) {
+		PreferencesPanel(content)
+	}
+}
+
+@Composable
+private fun PreferencesPanel(content: @Composable () -> Unit) {
 	Box(
 		modifier = Modifier
 			.fillMaxSize()

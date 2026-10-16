@@ -12,7 +12,7 @@ import timber.log.Timber
 /**
  * Getter to get the style resource for a given theme.
  */
-private val AppTheme.style
+val AppTheme.style
 	get() = when (this) {
 		AppTheme.PURPLE_HAZE -> R.style.Theme_Jellyfin_PurpleHaze
 		AppTheme.DARK -> R.style.Theme_Jellyfin
