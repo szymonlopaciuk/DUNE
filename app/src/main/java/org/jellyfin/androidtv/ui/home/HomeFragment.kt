@@ -79,6 +79,10 @@ class HomeFragment : Fragment() {
     private var interactionDelayRunnable: Runnable? = null
     private var _isCarouselPaused = mutableStateOf(false)
     val isCarouselPaused: Boolean get() = _isCarouselPaused.value
+    private var isBrowsingRows = false
+    private var isFocusInRows = false
+    private var selectedRowItem: BaseItemDto? = null
+    private var focusChangeListener: android.view.ViewTreeObserver.OnGlobalFocusChangeListener? = null
 
     private fun findRecyclerViews(viewGroup: ViewGroup): List<RecyclerView> {
         val recyclerViews = mutableListOf<RecyclerView>()
@@ -158,7 +162,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         isReadyForInteraction = true
 
-        _isCarouselPaused.value = false
+        _isCarouselPaused.value = isBrowsingRows
 
         preloadHomeScreenImages()
 
@@ -195,6 +199,11 @@ class HomeFragment : Fragment() {
             }
 
             cleanupScrollListeners()
+
+            focusChangeListener?.let { listener ->
+                view?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnGlobalFocusChangeListener(listener)
+            }
+            focusChangeListener = null
 
             _modernBinding = null
             _classicBinding = null
@@ -381,6 +390,8 @@ class HomeFragment : Fragment() {
         }
 
         if (!useClassicLayout) {
+            setupCarouselInfoSwitching(view)
+
             modernBinding.carouselContainer?.setContent {
             val carouselUiState by carouselViewModel.uiState.collectAsState()
 
@@ -485,10 +496,85 @@ class HomeFragment : Fragment() {
         }
     }
 
+    /**
+     * In the modern layout the carousel acts as a suggestion box while nothing is selected.
+     * Once the user starts moving through the rows it gives way to an info panel and backdrop
+     * for the focused item (like the classic layout). It comes back when focus leaves the rows
+     * or the selected item has nothing to show (e.g. library buttons).
+     */
+    private fun setupCarouselInfoSwitching(root: View) {
+        val contentView = modernBinding.contentView
+
+        val listener = android.view.ViewTreeObserver.OnGlobalFocusChangeListener { oldFocus, newFocus ->
+            val newInRows = newFocus != null && isDescendantOf(newFocus, contentView)
+            // The initial focus that lands on the rows when the screen opens (oldFocus == null)
+            // doesn't count as the user selecting something; keep showing the carousel then.
+            isFocusInRows = when {
+                newFocus == null -> isFocusInRows
+                !newInRows -> false
+                oldFocus == null -> isFocusInRows
+                else -> true
+            }
+            updateBrowsingRows()
+        }
+        focusChangeListener = listener
+        root.viewTreeObserver.addOnGlobalFocusChangeListener(listener)
+    }
+
+    private fun isDescendantOf(view: View, ancestor: View): Boolean {
+        var current: View? = view
+        while (current != null) {
+            if (current === ancestor) return true
+            current = current.parent as? View
+        }
+        return false
+    }
+
+    /**
+     * Called by [HomeRowsFragment] whenever the row selection changes, with the selected item
+     * or null when the selection has no details to show.
+     */
+    fun onRowItemSelected(item: BaseItemDto?) {
+        selectedRowItem = item
+        updateBrowsingRows()
+    }
+
+    private fun updateBrowsingRows() {
+        if (useClassicLayout) return
+        val browsing = isFocusInRows && selectedRowItem != null
+        if (browsing == isBrowsingRows) return
+        isBrowsingRows = browsing
+        _isCarouselPaused.value = browsing || !isResumed
+        refreshBackgroundState()
+
+        val binding = _modernBinding ?: return
+        // The carousel stays VISIBLE (only transparent) so it remains focusable:
+        // pressing up from the top row brings it back.
+        crossFade(binding.carouselContainer, show = !browsing, keepFocusable = true)
+        crossFade(binding.infoPanel, show = browsing, keepFocusable = false)
+    }
+
+    private fun crossFade(target: View?, show: Boolean, keepFocusable: Boolean) {
+        target ?: return
+        target.animate().cancel()
+        if (show) {
+            target.visibility = View.VISIBLE
+            target.animate().alpha(1f).setDuration(CROSSFADE_DURATION_MS).start()
+        } else {
+            target.animate().alpha(0f).setDuration(CROSSFADE_DURATION_MS).withEndAction {
+                if (!keepFocusable) target.visibility = View.INVISIBLE
+            }.start()
+        }
+    }
+
     private fun refreshBackgroundState() {
         try {
             if (useClassicLayout) {
                 backgroundService.unblockAllBackgrounds()
+            } else if (isBrowsingRows) {
+                // The rows set the backdrop while backgrounds were blocked, so apply it now
+                backgroundService.unblockAllBackgrounds()
+                backgroundService.setBackground(selectedRowItem)
             } else {
                 backgroundService.blockAllBackgrounds()
             }
@@ -522,5 +608,9 @@ class HomeFragment : Fragment() {
 
             }
         }
+    }
+
+    private companion object {
+        const val CROSSFADE_DURATION_MS = 200L
     }
 }

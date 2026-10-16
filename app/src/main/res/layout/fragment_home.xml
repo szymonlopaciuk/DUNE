@@ -67,4 +67,72 @@
 
     </androidx.compose.ui.platform.ComposeView>
 
+    <!-- Info about the focused item; replaces the carousel while browsing rows -->
+    <LinearLayout
+        android:id="@+id/info_panel"
+        android:layout_width="930dp"
+        android:layout_height="259dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="53dp"
+        android:layout_marginEnd="24dp"
+        android:alpha="0"
+        android:focusable="false"
+        android:gravity="bottom"
+        android:orientation="vertical"
+        android:paddingBottom="16dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <org.jellyfin.androidtv.ui.AsyncImageView
+            android:id="@+id/logo"
+            android:layout_width="325dp"
+            android:layout_height="85dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitStart"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="521dp"
+            android:layout_height="38dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/bebas_neue"
+            android:letterSpacing="0.02"
+            android:lineSpacingExtra="1dp"
+            android:maxLines="1"
+            android:text=""
+            android:textAllCaps="true"
+            android:textColor="@color/basic_button_text"
+            android:textSize="31sp"
+            android:textStyle="bold"
+            android:typeface="monospace" />
+
+        <LinearLayout
+            android:id="@+id/infoRow"
+            android:layout_width="500dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal" />
+
+        <org.jellyfin.androidtv.ui.shared.ShadowedTextView
+            android:id="@+id/summary"
+            android:layout_width="520dp"
+            android:layout_height="74dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:justificationMode="inter_word"
+            android:lineSpacingExtra="1dp"
+            android:maxLines="3"
+            android:paddingEnd="14dp"
+            android:text=""
+            android:textAlignment="viewStart"
+            android:textSize="15sp"
+            android:typeface="monospace" />
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

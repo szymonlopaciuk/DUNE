@@ -378,10 +378,12 @@ class HomeRowsFragment : RowsSupportFragment(), AudioEventListener, View.OnKeyLi
     private fun ensureViewsInitialized() {
         // Always reinitialize the views when this is called
         activity?.let { activity ->
-            titleView = activity.findViewById<android.widget.TextView>(R.id.title)
-            infoRowView = activity.findViewById<android.widget.LinearLayout>(R.id.infoRow)
-            summaryView = activity.findViewById<android.widget.TextView>(R.id.summary)
-            logoView = activity.findViewById<org.jellyfin.androidtv.ui.AsyncImageView>(R.id.logo)
+            // Card layouts also use R.id.title, so search inside the modern info panel when present
+            val root = activity.findViewById<View>(R.id.info_panel) ?: activity.window.decorView
+            titleView = root.findViewById<android.widget.TextView>(R.id.title)
+            infoRowView = root.findViewById<android.widget.LinearLayout>(R.id.infoRow)
+            summaryView = root.findViewById<android.widget.TextView>(R.id.summary)
+            logoView = root.findViewById<org.jellyfin.androidtv.ui.AsyncImageView>(R.id.logo)
 
             // If we have a current item, update the views with its data
             currentItem?.let { item ->
@@ -463,6 +465,11 @@ private inner class ItemViewSelectedListener : OnItemViewSelectedListener {
         // Check if the item is from the Media Folders row or has the media_folders_item tag
         val isMediaFolderItem = homeFragmentViewsRow.isMediaFoldersItem(item) ||
                               (item is BaseRowItem && itemViewHolder?.view?.tag == "media_folders_item")
+
+        // Tell the home screen first, so the modern layout can switch between carousel and
+        // info panel (and (un)block backgrounds) before the backdrop is set below
+        val hasDetails = item is BaseRowItem && !isMediaFolderItem && item.baseItem != null
+        (parentFragment as? HomeFragment)?.onRowItemSelected(if (hasDetails) (item as BaseRowItem).baseItem else null)
 
         if (isMediaFolderItem) {
             // For Media Folders items, clear the info panel but keep the background
