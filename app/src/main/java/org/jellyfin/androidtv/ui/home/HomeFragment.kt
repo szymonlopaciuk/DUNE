@@ -649,6 +649,16 @@ class HomeFragment : Fragment() {
         if (grid != null && grid.extraLayoutSpace != collapsedTop / 2) {
             grid.clipChildren = false
             grid.extraLayoutSpace = collapsedTop / 2
+
+            // The lifted grid is drawn outside its own bounds; let its parents (up to and
+            // including the rows container, usually the grid's direct parent) draw it there.
+            // The container's clip bounds still limit what's visible.
+            var parent = grid.parent as? ViewGroup
+            while (parent != null) {
+                parent.clipChildren = false
+                if (parent === contentView) break
+                parent = parent.parent as? ViewGroup
+            }
         }
 
         val targetProgress = if (topAreaMode == TopAreaMode.ROWS_EXPANDED) 1f else 0f
