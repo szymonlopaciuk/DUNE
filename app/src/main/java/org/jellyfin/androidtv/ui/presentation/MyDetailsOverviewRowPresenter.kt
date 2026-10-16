@@ -102,7 +102,7 @@ class MyDetailsOverviewRowPresenter(
 					text = resolutionText
 					setTextColor(androidx.core.content.ContextCompat.getColor(view.context, org.jellyfin.androidtv.R.color.basic_button_text))
 					textSize = 12f
-					setTypeface(android.graphics.Typeface.DEFAULT_BOLD)
+					setTypeface(typeface, android.graphics.Typeface.BOLD)
 					gravity = android.view.Gravity.CENTER_VERTICAL
 				}
 				val params = android.widget.LinearLayout.LayoutParams(
@@ -127,7 +127,6 @@ class MyDetailsOverviewRowPresenter(
 					text = "  •  "
 					setTextColor(androidx.core.content.ContextCompat.getColor(view.context, org.jellyfin.androidtv.R.color.basic_button_text))
 					textSize = 16f
-					setTypeface(android.graphics.Typeface.SANS_SERIF)
 					gravity = android.view.Gravity.CENTER_VERTICAL
 				}
 				val params = android.widget.LinearLayout.LayoutParams(

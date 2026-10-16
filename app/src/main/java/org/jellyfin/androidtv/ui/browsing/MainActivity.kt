@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.browsing
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
@@ -98,7 +99,7 @@ class MainActivity : FragmentActivity() {
 
 		// Setup screensaver and background
 		binding.background.setContent { AppBackground() }
-		binding.screensaver.setContent { InAppScreensaver() }
+		binding.screensaver.setContent { AppFontTheme { InAppScreensaver() } }
 
 		// Setup screen on/off state observer
 		screensaverViewModel.keepScreenOn.flowWithLifecycle(lifecycle, Lifecycle.State.RESUMED)

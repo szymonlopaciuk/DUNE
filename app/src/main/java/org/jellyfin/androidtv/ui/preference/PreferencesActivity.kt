@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.preference
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -36,7 +37,7 @@ class PreferencesComposeActivity : ComponentActivity() {
         val showAbout = intent.getBooleanExtra("showAbout", false)
 
         setContent {
-            MaterialTheme {
+            MaterialTheme { AppFontTheme {
                 PreferencesRoot {
                     UserPreferencesScreenCompose(
                         userPreferences = userPreferences,
@@ -62,7 +63,7 @@ class PreferencesComposeActivity : ComponentActivity() {
                         }
                     )
                 }
-            }
+            } }
         }
     }
 

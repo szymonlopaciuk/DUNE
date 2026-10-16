@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.ImageView
@@ -150,11 +151,13 @@ class NowPlayingView @JvmOverloads constructor(
 	defStyle: Int = 0
 ) : AbstractComposeView(context, attrs, defStyle) {
 	@Composable
-	override fun Content() = NowPlayingComposable(
-		// Workaround for older Android versions unable to find focus in our toolbar view when the NowPlayingView is added but inactive
-		onFocusableChange = { focusable ->
-			isFocusable = focusable
-			descendantFocusability = if (focusable) FOCUS_AFTER_DESCENDANTS else FOCUS_BLOCK_DESCENDANTS
-		}
-	)
+	override fun Content() = AppFontTheme {
+		NowPlayingComposable(
+			// Workaround for older Android versions unable to find focus in our toolbar view when the NowPlayingView is added but inactive
+			onFocusableChange = { focusable ->
+				isFocusable = focusable
+				descendantFocusability = if (focusable) FOCUS_AFTER_DESCENDANTS else FOCUS_BLOCK_DESCENDANTS
+			}
+		)
+	}
 }

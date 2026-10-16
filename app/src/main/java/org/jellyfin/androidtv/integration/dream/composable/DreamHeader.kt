@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.integration.dream.composable
 
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.R
@@ -53,7 +53,7 @@ fun DreamHeader(
 			val currentTime by rememberCurrentTime()
 			Text(
 				text = currentTime,
-				style = TextStyle(
+				style = LocalTextStyle.current.copy(
 					color = Color.White,
 					fontSize = 17.sp
 				),

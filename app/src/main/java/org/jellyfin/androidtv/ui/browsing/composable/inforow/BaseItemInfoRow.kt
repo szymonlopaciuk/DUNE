@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.browsing.composable.inforow
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Context
 import android.util.AttributeSet
 import androidx.compose.foundation.layout.Arrangement
@@ -432,12 +433,12 @@ class BaseItemInfoRowView @JvmOverloads constructor(
 	}
 
     @Composable
-    override fun Content() {
+    override fun Content() { AppFontTheme {
         val item by _item.collectAsState()
         val mediaSource by _mediaSource.collectAsState()
         val includeRuntime by _includeRuntime.collectAsState()
         val showMediaDetails by _showMediaDetails.collectAsState()
 
         item?.let { BaseItemInfoRow(it, mediaSource, includeRuntime, showMediaDetails) }
-    }
+    } }
 }

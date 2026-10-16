@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.startup.fragment
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -160,7 +161,7 @@ class SelectServerFragment : Fragment() {
 		}
 
 		// Notifications
-		binding.notifications.setContent {
+		binding.notifications.setContent { AppFontTheme {
 			val notificationsRepository = koinInject<NotificationsRepository>()
 			val notifications by notificationsRepository.notifications.collectAsState()
 
@@ -184,7 +185,7 @@ class SelectServerFragment : Fragment() {
 					}
 				}
 			}
-		}
+		} }
 
 		// Manual
 		binding.enterServerAddress.setOnClickListener {

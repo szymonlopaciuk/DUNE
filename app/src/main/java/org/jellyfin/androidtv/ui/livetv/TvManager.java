@@ -188,7 +188,7 @@ public class TvManager {
         timelineRow.addView(on);
         TextView channel = new TextView(context);
         channel.setText(program.getChannelName());
-        channel.setTypeface(null, Typeface.BOLD);
+        channel.setTypeface(channel.getTypeface(), Typeface.BOLD);
         channel.setTextColor(context.getResources().getColor(android.R.color.holo_blue_light));
         timelineRow.addView(channel);
         TextView datetime = new TextView(context);

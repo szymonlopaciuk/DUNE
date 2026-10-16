@@ -19,7 +19,7 @@
         android:layout_marginStart="24dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:fontFamily="sans-serif-light"
+        android:fontFamily="?attr/appFontFamilyLight"
         tools:ignore="HardcodedText" />
 
     <ScrollView

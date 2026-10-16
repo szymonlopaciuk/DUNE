@@ -45,6 +45,7 @@ import org.jellyfin.androidtv.databinding.FragmentHomeClassicBinding
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.ui.AsyncImageView
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import org.jellyfin.androidtv.ui.home.carousel.CarouselUiState
 import org.jellyfin.androidtv.ui.home.carousel.CarouselViewModel
 import org.jellyfin.androidtv.ui.home.carousel.FeaturedCarousel
@@ -340,7 +341,7 @@ class HomeFragment : Fragment() {
         view.postDelayed(interactionDelayRunnable!!, 2000)
 
         val toolbarBinding = if (useClassicLayout) classicBinding.toolbar else modernBinding.toolbar
-        toolbarBinding.setContent {
+        toolbarBinding.setContent { AppFontTheme {
             val searchAction = {
                 navigationRepository.navigate(Destinations.search())
             }
@@ -397,13 +398,13 @@ class HomeFragment : Fragment() {
                 openRandomMovie = openRandomMovie,
                 userSettingPreferences = userSettingPreferences
             )
-        }
+        } }
 
         setupTopAreaSwitching(view)
         topAreaMode = if (useClassicLayout) TopAreaMode.ITEM_INFO else TopAreaMode.FEATURED
 
         if (!useClassicLayout) {
-            modernBinding.carouselContainer?.setContent {
+            modernBinding.carouselContainer?.setContent { AppFontTheme {
             val carouselUiState by carouselViewModel.uiState.collectAsState()
 
             when (val state = carouselUiState) {
@@ -503,7 +504,7 @@ class HomeFragment : Fragment() {
                     }
                 }
             }
-            }
+            } }
         }
     }
 

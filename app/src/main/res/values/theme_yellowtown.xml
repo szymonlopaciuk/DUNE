@@ -14,6 +14,12 @@
     <color name="yellowtown_transparent_30">#4DFFD700</color>  <!-- 30% opacity primary -->
 
     <style name="Theme.YellowTown" parent="@style/Theme.AppCompat.Leanback">
+        <!-- System fonts, replaced by the AppFont theme overlays -->
+        <item name="appFontFamilyRegular">sans-serif</item>
+        <item name="appFontFamilyThin">sans-serif-thin</item>
+        <item name="appFontFamilyLight">sans-serif-light</item>
+        <item name="appFontFamilyMedium">sans-serif-medium</item>
+        <item name="appFontFamilyCondensed">sans-serif-condensed</item>
         <!-- Base colors -->
         <item name="android:colorPrimary">@color/yellowtown_primary</item>
         <item name="android:colorPrimaryDark">@color/yellowtown_primary_dark</item>

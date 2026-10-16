@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        App font theme overlays, applied on top of the app theme (see AppFont).
+
+        android:fontFamily (and AppCompat's fontFamily) set on the theme apply to every text view
+        without a font of its own, including leanback's styles. Layouts that need a specific
+        weight or width use the appFontFamily* attributes instead of naming a system font.
+        Fonts only come in regular, medium and bold, so thin and light use regular, and
+        condensed uses the regular width.
+    -->
+    <style name="AppFont" parent="" />
+
+    <!-- Keeps the theme's system fonts -->
+    <style name="AppFont.System" />
+
+    <style name="AppFont.Roboto">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="fontFamily">@font/roboto</item>
+        <item name="appFontFamilyRegular">@font/roboto</item>
+        <item name="appFontFamilyThin">@font/roboto</item>
+        <item name="appFontFamilyLight">@font/roboto</item>
+        <item name="appFontFamilyMedium">@font/roboto</item>
+        <item name="appFontFamilyCondensed">@font/roboto</item>
+    </style>
+
+    <style name="AppFont.GoogleSans">
+        <item name="android:fontFamily">@font/google_sans</item>
+        <item name="fontFamily">@font/google_sans</item>
+        <item name="appFontFamilyRegular">@font/google_sans</item>
+        <item name="appFontFamilyThin">@font/google_sans</item>
+        <item name="appFontFamilyLight">@font/google_sans</item>
+        <item name="appFontFamilyMedium">@font/google_sans_medium</item>
+        <item name="appFontFamilyCondensed">@font/google_sans</item>
+    </style>
+
+    <style name="AppFont.Inter">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="appFontFamilyRegular">@font/inter</item>
+        <item name="appFontFamilyThin">@font/inter</item>
+        <item name="appFontFamilyLight">@font/inter</item>
+        <item name="appFontFamilyMedium">@font/inter_medium</item>
+        <item name="appFontFamilyCondensed">@font/inter</item>
+    </style>
+
+    <style name="AppFont.Overpass">
+        <item name="android:fontFamily">@font/overpass</item>
+        <item name="fontFamily">@font/overpass</item>
+        <item name="appFontFamilyRegular">@font/overpass</item>
+        <item name="appFontFamilyThin">@font/overpass</item>
+        <item name="appFontFamilyLight">@font/overpass</item>
+        <item name="appFontFamilyMedium">@font/overpass_medium</item>
+        <item name="appFontFamilyCondensed">@font/overpass</item>
+    </style>
+
+    <style name="AppFont.Bangers">
+        <item name="android:fontFamily">@font/bangers</item>
+        <item name="fontFamily">@font/bangers</item>
+        <item name="appFontFamilyRegular">@font/bangers</item>
+        <item name="appFontFamilyThin">@font/bangers</item>
+        <item name="appFontFamilyLight">@font/bangers</item>
+        <item name="appFontFamilyMedium">@font/bangers</item>
+        <item name="appFontFamilyCondensed">@font/bangers</item>
+    </style>
+
+    <style name="AppFont.BebasNeue">
+        <item name="android:fontFamily">@font/bebas_neue</item>
+        <item name="fontFamily">@font/bebas_neue</item>
+        <item name="appFontFamilyRegular">@font/bebas_neue</item>
+        <item name="appFontFamilyThin">@font/bebas_neue</item>
+        <item name="appFontFamilyLight">@font/bebas_neue</item>
+        <item name="appFontFamilyMedium">@font/bebas_neue</item>
+        <item name="appFontFamilyCondensed">@font/bebas_neue</item>
+    </style>
+
+    <style name="AppFont.BagelFatOne">
+        <item name="android:fontFamily">@font/bagel_fat_one</item>
+        <item name="fontFamily">@font/bagel_fat_one</item>
+        <item name="appFontFamilyRegular">@font/bagel_fat_one</item>
+        <item name="appFontFamilyThin">@font/bagel_fat_one</item>
+        <item name="appFontFamilyLight">@font/bagel_fat_one</item>
+        <item name="appFontFamilyMedium">@font/bagel_fat_one</item>
+        <item name="appFontFamilyCondensed">@font/bagel_fat_one</item>
+    </style>
+
+    <style name="AppFont.FugazOne">
+        <item name="android:fontFamily">@font/fugaz_one</item>
+        <item name="fontFamily">@font/fugaz_one</item>
+        <item name="appFontFamilyRegular">@font/fugaz_one</item>
+        <item name="appFontFamilyThin">@font/fugaz_one</item>
+        <item name="appFontFamilyLight">@font/fugaz_one</item>
+        <item name="appFontFamilyMedium">@font/fugaz_one</item>
+        <item name="appFontFamilyCondensed">@font/fugaz_one</item>
+    </style>
+</resources>

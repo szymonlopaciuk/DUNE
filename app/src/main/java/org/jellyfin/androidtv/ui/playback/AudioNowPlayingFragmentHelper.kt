@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.playback
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,7 +28,7 @@ fun initializeLyricsView(
 	lyricsView: ComposeView,
 	playbackManager: PlaybackManager,
 ) {
-	lyricsView.setContent {
+	lyricsView.setContent { AppFontTheme {
 		val entry by rememberQueueEntry(playbackManager)
 		val lyrics = entry?.run { lyricsFlow.collectAsState(lyrics) }?.value
 
@@ -59,5 +60,5 @@ fun initializeLyricsView(
 					.padding(horizontal = 15.dp),
 			)
 		}
-	}
+	} }
 }

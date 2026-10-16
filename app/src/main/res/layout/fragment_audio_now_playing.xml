@@ -22,7 +22,7 @@
         android:layout_marginTop="25dp"
         android:layout_marginEnd="180sp"
         android:ellipsize="end"
-        android:fontFamily="sans-serif-light"
+        android:fontFamily="?attr/appFontFamilyLight"
         android:maxLines="1"
         android:text="@string/lbl_artists"
         android:textSize="40sp" />
@@ -69,7 +69,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:ellipsize="marquee"
-                        android:fontFamily="sans-serif-light"
+                        android:fontFamily="?attr/appFontFamilyLight"
                         android:layerType="hardware"
                         android:singleLine="true"
                         android:text="@string/lbl_song_title"
@@ -81,7 +81,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:ellipsize="marquee"
-                        android:fontFamily="sans-serif-light"
+                        android:fontFamily="?attr/appFontFamilyLight"
                         android:layerType="hardware"
                         android:singleLine="true"
                         android:text="@string/lbl_album_name"
@@ -92,7 +92,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:fontFamily="sans-serif-light"
+                        android:fontFamily="?attr/appFontFamilyLight"
                         android:textSize="18sp"
                         tools:text="1" />
 
@@ -261,7 +261,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_marginEnd="40dp"
                 android:layout_marginBottom="25sp"
-                android:fontFamily="sans-serif-light"
+                android:fontFamily="?attr/appFontFamilyLight"
                 android:textAlignment="viewEnd"
                 android:textSize="18sp"
                 tools:text="0 | 0" />

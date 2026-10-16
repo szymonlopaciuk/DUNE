@@ -1,5 +1,7 @@
 package org.jellyfin.androidtv.ui.presentation
 
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.NonNull
@@ -18,7 +20,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.leanback.widget.Presenter
@@ -57,7 +58,7 @@ class GridButtonPresenter @JvmOverloads constructor(
             }
         }
 
-        fun bind(value: GridButton) = composeView.setContent {
+        fun bind(value: GridButton) = composeView.setContent { AppFontTheme {
             val backgroundColor = if (isFocused) {
                 colorResource(android.R.color.white)
             } else {
@@ -87,7 +88,7 @@ class GridButtonPresenter @JvmOverloads constructor(
 
                 Text(
                     text = value.text,
-                    style = TextStyle(
+                    style = LocalTextStyle.current.copy(
                         color = textColor,
                         fontSize = 12.sp
                     ),
@@ -96,7 +97,7 @@ class GridButtonPresenter @JvmOverloads constructor(
                         .align(Alignment.BottomStart)
                 )
             }
-        }
+        } }
     }
 
     @NonNull

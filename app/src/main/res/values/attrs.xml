@@ -52,6 +52,14 @@
     <declare-styleable name="StrokeTextView">
         <attr name="strokeWidth" format="float" />
     </declare-styleable>
+    <!-- Interface font families. The base themes set the system fonts, the AppFont theme
+         overlays (font_overlays.xml) replace them with the chosen app font -->
+    <attr name="appFontFamilyRegular" format="string|reference" />
+    <attr name="appFontFamilyThin" format="string|reference" />
+    <attr name="appFontFamilyLight" format="string|reference" />
+    <attr name="appFontFamilyMedium" format="string|reference" />
+    <attr name="appFontFamilyCondensed" format="string|reference" />
+
     <declare-styleable name="AsyncImageView">
         <attr name="crossfadeDuration" format="integer" />
         <attr name="circleCrop" format="boolean" />

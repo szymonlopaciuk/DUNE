@@ -615,6 +615,17 @@
     <string name="pref_theme_basic">Basic Dark Low-End</string>
     <string name="pref_theme_flexy">Flexy </string>
     <string name="pref_theme_yellow_town">Yellow Town </string>
+    <string name="pref_app_font">App font</string>
+    <string name="pref_app_font_description">Font for the interface text</string>
+    <string name="pref_app_font_system">System default</string>
+    <string name="pref_app_font_roboto">Roboto</string>
+    <string name="pref_app_font_google_sans">Google Sans</string>
+    <string name="pref_app_font_inter">Inter</string>
+    <string name="pref_app_font_overpass">Overpass</string>
+    <string name="pref_app_font_bangers">Bangers</string>
+    <string name="pref_app_font_bebas_neue">Bebas Neue</string>
+    <string name="pref_app_font_bagel_fat_one">Bagel Fat One</string>
+    <string name="pref_app_font_fugaz_one">Fugaz One</string>
     <string name="Dynamic_colors">Dynamic Colors</string>
     <string name="pref_dynamic_colors">Use colors extracted from backdrop image instead of theme colors</string>
 

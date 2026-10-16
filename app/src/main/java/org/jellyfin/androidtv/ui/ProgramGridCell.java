@@ -15,6 +15,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jellyfin.androidtv.R;
+import org.jellyfin.androidtv.util.ThemeFontsKt;
 import org.jellyfin.androidtv.preference.LiveTvPreferences;
 import org.jellyfin.androidtv.ui.livetv.LiveTvGuide;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
@@ -62,7 +63,8 @@ public class ProgramGridCell extends RelativeLayout implements RecordingIndicato
             if (localStart.plusMinutes(1).isBefore(activity.getCurrentLocalStartDate())) {
                 mProgramName.setText("<< "+mProgramName.getText());
                 TextView time = new TextView(context);
-                time.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+                Typeface lightFont = ThemeFontsKt.resolveThemeFont(context, R.attr.appFontFamilyLight);
+                if (lightFont != null) time.setTypeface(lightFont);
                 time.setTextSize(12);
                 time.setText(DateTimeExtensionsKt.getTimeFormatter(getContext()).format(program.getStartDate()));
                 mInfoRow.addView(time);

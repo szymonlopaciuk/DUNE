@@ -33,7 +33,7 @@
         android:layout_marginTop="44dp"
         android:layout_marginEnd="48dp"
         android:backgroundTint="#787272"
-        android:fontFamily="sans-serif-condensed"
+        android:fontFamily="?attr/appFontFamilyCondensed"
         android:gravity="center"
         android:lineSpacingExtra="8sp"
         android:text="@string/who_is_watching"

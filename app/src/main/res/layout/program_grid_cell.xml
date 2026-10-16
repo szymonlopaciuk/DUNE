@@ -19,7 +19,7 @@
         android:ellipsize="end"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:fontFamily="sans-serif-light"
+        android:fontFamily="?attr/appFontFamilyLight"
         android:maxLines="1"
         android:text="@string/no_program_data"
         android:textSize="18sp" />

@@ -5,6 +5,7 @@ import android.view.KeyEvent
 import androidx.preference.PreferenceManager
 import org.jellyfin.androidtv.preference.UserPreferences.Companion.screensaverInAppEnabled
 import org.jellyfin.androidtv.preference.constant.AppLanguage
+import org.jellyfin.androidtv.preference.constant.AppFont
 import org.jellyfin.androidtv.preference.constant.AppTheme
 import org.jellyfin.androidtv.preference.constant.AudioBehavior
 import org.jellyfin.androidtv.preference.constant.AudioLanguage
@@ -57,6 +58,11 @@ class UserPreferences(context: Context) : SharedPreferenceStore(
 		 * Select the app theme
 		 */
 		var appTheme = enumPreference("app_theme", AppTheme.MUTED_PURPLE)
+
+		/**
+		 * Font for the interface text, applied on app start
+		 */
+		var appFont = enumPreference("app_font", AppFont.SYSTEM)
 
 		/**
 		 * Enable background images while browsing

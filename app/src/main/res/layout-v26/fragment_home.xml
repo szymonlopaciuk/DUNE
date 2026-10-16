@@ -124,7 +124,7 @@
             android:layout_height="74dp"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="?attr/appFontFamilyMedium"
             android:justificationMode="inter_word"
             android:lineSpacingExtra="1dp"
             android:maxLines="3"

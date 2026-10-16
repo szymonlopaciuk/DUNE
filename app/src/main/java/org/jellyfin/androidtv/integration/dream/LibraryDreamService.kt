@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.integration.dream
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.service.dreams.DreamService
 import org.jellyfin.androidtv.integration.dream.composable.DreamHost
 
@@ -15,8 +16,8 @@ class LibraryDreamService : DreamServiceCompat() {
 		isInteractive = false
 		isFullscreen = true
 
-		setContent {
+		setContent { AppFontTheme {
 			DreamHost()
-		}
+		} }
 	}
 }

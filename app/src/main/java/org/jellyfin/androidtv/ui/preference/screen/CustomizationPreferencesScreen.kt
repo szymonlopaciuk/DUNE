@@ -40,6 +40,7 @@ import org.jellyfin.androidtv.R
 import org.jellyfin.androidtv.preference.UserPreferences
 import org.jellyfin.androidtv.preference.UserSettingPreferences
 import org.jellyfin.androidtv.preference.constant.AppLanguage
+import org.jellyfin.androidtv.preference.constant.AppFont
 import org.jellyfin.androidtv.preference.constant.AppTheme
 import org.jellyfin.androidtv.preference.constant.CarouselSortBy
 import org.jellyfin.androidtv.preference.constant.RatingType
@@ -173,6 +174,20 @@ fun CustomizationPreferencesScreenCompose(
 				value = appTheme,
 				onValueChange = setAppTheme,
 				options = AppTheme.entries,
+				optionLabel = { context.getString(it.nameRes) }
+			)
+		}
+
+		item {
+			val (appFont, setAppFont) = rememberEnumPreferenceState(
+				preference = UserPreferences.appFont,
+				preferences = userPreferences
+			)
+			EnumPreference(
+				title = context.getString(R.string.pref_app_font),
+				value = appFont,
+				onValueChange = setAppFont,
+				options = AppFont.entries,
 				optionLabel = { context.getString(it.nameRes) }
 			)
 		}

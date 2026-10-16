@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.shared.buttons
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Context
 import android.widget.FrameLayout
 import androidx.compose.animation.animateContentSize
@@ -98,7 +99,7 @@ class DetailButton @JvmOverloads constructor(
 	}
 
 	private fun updateComposeContent() {
-		composeView.setContent {
+		composeView.setContent { AppFontTheme {
 			DetailButtonComposable(
 				text = currentText,
 				icon = currentIcon,
@@ -106,7 +107,7 @@ class DetailButton @JvmOverloads constructor(
 				isActivated = _isActivated,
 				onClick = { clickListener?.onClick(this@DetailButton) }
 			)
-		}
+		} }
 	}
 
 	@Composable

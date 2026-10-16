@@ -15,7 +15,7 @@
         android:layout_marginStart="20sp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10sp"
-        android:fontFamily="sans-serif-light" />
+        android:fontFamily="?attr/appFontFamilyLight" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -42,7 +42,7 @@
         android:layout_marginStart="30sp"
         android:minHeight="150sp"
         android:gravity="center_vertical"
-        android:fontFamily="sans-serif-light" />
+        android:fontFamily="?attr/appFontFamilyLight" />
 
     <LinearLayout
         android:orientation="horizontal"

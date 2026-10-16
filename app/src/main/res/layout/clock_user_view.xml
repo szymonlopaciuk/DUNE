@@ -42,7 +42,7 @@
         android:id="@+id/textClock3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-thin"
+        android:fontFamily="?attr/appFontFamilyThin"
         android:padding="8dp"
         android:textAllCaps="true"
         android:textSize="16sp"

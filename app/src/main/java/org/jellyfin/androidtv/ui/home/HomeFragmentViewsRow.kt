@@ -68,7 +68,7 @@ class ButtonViewPresenter : Presenter() {
             gravity = Gravity.CENTER
             setPadding(25, 15, 25, 15)
             textSize = 14f
-            setTypeface(null, Typeface.BOLD)
+            setTypeface(typeface, Typeface.BOLD)
             setTextColor(textColor)
         }
 

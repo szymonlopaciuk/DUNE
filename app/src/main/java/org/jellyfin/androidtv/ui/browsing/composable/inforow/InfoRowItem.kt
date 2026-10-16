@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.browsing.composable.inforow
 
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +47,7 @@ fun InfoRowItem(
 	}
 
 	ProvideTextStyle(
-		value = TextStyle(
+		value = LocalTextStyle.current.copy(
 			color = foregroundColor,
 			fontSize = if (backgroundColor.alpha > 0f) textSize else 14.sp,
 			fontWeight = FontWeight.SemiBold,

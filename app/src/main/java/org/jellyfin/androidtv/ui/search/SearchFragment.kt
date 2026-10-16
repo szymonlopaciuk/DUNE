@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.search
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -67,7 +68,7 @@ class SearchFragment : Fragment() {
 		return ComposeView(requireContext()).apply {
 			setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
-			setContent {
+			setContent { AppFontTheme {
 				SearchScreen(
 					viewModel = viewModel,
 					onNavigateToItem = { baseRowItem ->
@@ -78,7 +79,7 @@ class SearchFragment : Fragment() {
 						launchVoiceSearch()
 					}
 				)
-			}
+			} }
 		}
 	}
 

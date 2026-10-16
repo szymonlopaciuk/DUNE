@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.home.carousel
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,13 +73,13 @@ class GenreCarouselRowPresenter(
 	override fun onBindRowViewHolder(vh: RowPresenter.ViewHolder, item: Any) {
 		super.onBindRowViewHolder(vh, item)
 		val row = item as GenreCarouselRow
-		(vh as ViewHolder).composeView.setContent {
+		(vh as ViewHolder).composeView.setContent { AppFontTheme {
 			GenreCarousel(
 				row = row,
 				onItemClicked = onItemClicked,
 				onActiveIndexChanged = { index -> row.activeIndex = index },
 			)
-		}
+		} }
 	}
 
 	override fun onUnbindRowViewHolder(vh: RowPresenter.ViewHolder) {

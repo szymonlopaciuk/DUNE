@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.playback.overlay
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Context
 import android.util.AttributeSet
 import androidx.compose.animation.AnimatedVisibility
@@ -136,7 +137,7 @@ class SkipOverlayView @JvmOverloads constructor(
 		}
 
 	@Composable
-	override fun Content() {
+	override fun Content() { AppFontTheme {
 		val skipUiEnabled by _skipUiEnabled.collectAsState()
 		val currentPosition by _currentPosition.collectAsState()
 		val targetPosition by _targetPosition.collectAsState()
@@ -153,5 +154,5 @@ class SkipOverlayView @JvmOverloads constructor(
 		}
 
 		SkipOverlayComposable(visible)
-	}
+	} }
 }

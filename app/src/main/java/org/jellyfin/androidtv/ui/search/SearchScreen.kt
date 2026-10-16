@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.search
 
+import androidx.compose.material3.LocalTextStyle
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.animation.AnimatedVisibility
@@ -58,7 +59,6 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -357,7 +357,7 @@ private fun TVSearchFieldWithKeyboard(
 		),
 		singleLine = true,
 		shape = RoundedCornerShape(8.dp),
-		textStyle = TextStyle(
+		textStyle = LocalTextStyle.current.copy(
 			fontSize = 18.sp,
 			color = Color.White
 		)

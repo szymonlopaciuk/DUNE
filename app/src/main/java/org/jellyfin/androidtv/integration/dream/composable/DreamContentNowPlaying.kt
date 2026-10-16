@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.integration.dream.composable
 
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,7 +113,7 @@ fun DreamContentNowPlaying(
 		) {
 			Text(
 				text = content.item.name.orEmpty(),
-				style = TextStyle(
+				style = LocalTextStyle.current.copy(
 					color = Color.White,
 					fontSize = 26.sp,
 				),
@@ -130,7 +130,7 @@ fun DreamContentNowPlaying(
 						else -> listOfNotNull(albumArtist)
 					}.joinToString(", ")
 				},
-				style = TextStyle(
+				style = LocalTextStyle.current.copy(
 					color = Color(0.047f, 0.047f, 0.047f, 1.0f),
 					fontSize = 15.sp,
 				),

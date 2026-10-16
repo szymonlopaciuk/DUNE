@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.ui.startup.fragment
 
+import org.jellyfin.androidtv.ui.composable.AppFontTheme
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,7 +23,7 @@ class StartupToolbarFragment : Fragment() {
 	): View {
 		return ComposeView(requireContext()).apply {
 			setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-			setContent {
+			setContent { AppFontTheme {
 				StartupToolbar(
 					openHelp = {
 						parentFragmentManager.commit {
@@ -38,7 +39,7 @@ class StartupToolbarFragment : Fragment() {
 						startActivity(intent)
 					},
 				)
-			}
+			} }
 		}
 	}
 }

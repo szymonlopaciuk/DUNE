@@ -1,5 +1,6 @@
 package org.jellyfin.androidtv.integration.dream.composable
 
+import org.jellyfin.androidtv.ui.base.LocalTextStyle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jellyfin.androidtv.integration.dream.model.DreamContent
@@ -59,7 +59,7 @@ fun DreamContentLibraryShowcase(
 		} else {
 			Text(
 				text = content.item.name.orEmpty(),
-				style = TextStyle(
+				style = LocalTextStyle.current.copy(
 					color = Color.White,
 					fontSize = 32.sp
 				),
