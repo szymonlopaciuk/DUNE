@@ -86,8 +86,9 @@ class HomeFragment : Fragment() {
     private var selectedRowItem: BaseItemDto? = null
     private var isGenreCarouselSelected = false
     private var gridBasePaddingTop: Int? = null
-    private var rowsClipTop = 0
-    private var rowsClipAnimator: android.animation.ValueAnimator? = null
+    private var rowsCollapsedTop = 0
+    private var rowsExpandProgress = 0f
+    private var rowsExpandAnimator: android.animation.ValueAnimator? = null
     private var focusChangeListener: android.view.ViewTreeObserver.OnGlobalFocusChangeListener? = null
 
     private fun findRecyclerViews(viewGroup: ViewGroup): List<RecyclerView> {
@@ -210,8 +211,8 @@ class HomeFragment : Fragment() {
                 view?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnGlobalFocusChangeListener(listener)
             }
             focusChangeListener = null
-            rowsClipAnimator?.cancel()
-            rowsClipAnimator = null
+            rowsExpandAnimator?.cancel()
+            rowsExpandAnimator = null
             gridBasePaddingTop = null
 
             _modernBinding = null
@@ -608,8 +609,9 @@ class HomeFragment : Fragment() {
      * The rows fill the space below the toolbar, but normally only their bottom part (the height
      * of [collapsedRowsHeightDp]) is shown, with the area above it left to the carousel or info
      * panel. The grid aligns the selected row to the middle of that bottom part (with top padding
-     * so the first row stops at its top edge), and the rest is clipped. With a genre carousel selected the clip is animated away to reveal the
-     * row above. Nothing is re-laid out, so moving between rows stays a plain scroll.
+     * so the first row stops at its top edge), and the rest is clipped. With a genre carousel
+     * selected the clip is animated away and the rows lifted, centering the carousel with the row
+     * above it visible. Nothing is re-laid out, so moving between rows stays a plain scroll.
      */
     private fun setupRowsWindow(contentView: View) {
         contentView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyRowsWindow(animate = false) }
@@ -641,24 +643,45 @@ class HomeFragment : Fragment() {
             }
         }
 
-        val targetClipTop = if (topAreaMode == TopAreaMode.ROWS_EXPANDED) 0 else collapsedTop
+        rowsCollapsedTop = collapsedTop
+        val grid = rowsFragment?.verticalGridView
+        // Lay out rows past the bottom edge, they come into view when the rows are lifted
+        if (grid != null && grid.extraLayoutSpace != collapsedTop / 2) {
+            grid.clipChildren = false
+            grid.extraLayoutSpace = collapsedTop / 2
+        }
+
+        val targetProgress = if (topAreaMode == TopAreaMode.ROWS_EXPANDED) 1f else 0f
         if (animate) {
-            rowsClipAnimator?.cancel()
-            rowsClipAnimator = android.animation.ValueAnimator.ofInt(rowsClipTop, targetClipTop).apply {
+            rowsExpandAnimator?.cancel()
+            rowsExpandAnimator = android.animation.ValueAnimator.ofFloat(rowsExpandProgress, targetProgress).apply {
                 duration = CROSSFADE_DURATION_MS
-                addUpdateListener { setRowsClipTop(contentView, it.animatedValue as Int) }
+                addUpdateListener { setRowsExpandProgress(it.animatedValue as Float) }
                 start()
             }
-        } else if (rowsClipAnimator?.isRunning != true) {
-            setRowsClipTop(contentView, targetClipTop)
+        } else if (rowsExpandAnimator?.isRunning != true) {
+            setRowsExpandProgress(targetProgress)
         }
     }
 
-    private fun setRowsClipTop(contentView: View, clipTop: Int) {
-        rowsClipTop = clipTop
+    /**
+     * 0 shows only the bottom part of the rows; 1 reveals the area above and lifts the rows so
+     * the selected (genre carousel) row is centered. The lift is a translation, so it never
+     * fights with leanback's own scrolling.
+     */
+    private fun setRowsExpandProgress(progress: Float) {
+        rowsExpandProgress = progress
+        val contentView = currentContentView() ?: return
+        val collapsedTop = rowsCollapsedTop
+
+        val clipTop = (collapsedTop * (1f - progress)).roundToInt()
         val bounds = contentView.clipBounds ?: android.graphics.Rect()
         bounds.set(0, clipTop, contentView.width, contentView.height)
         contentView.clipBounds = bounds
+
+        val rowsFragment = childFragmentManager.findFragmentById(R.id.content_view) as? HomeRowsFragment
+        // The selected row is centered on the bottom part; lift it to the middle of the rows
+        rowsFragment?.verticalGridView?.translationY = -collapsedTop / 2f * progress
     }
 
     private fun fadeTo(target: View?, visible: Boolean) {
