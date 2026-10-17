@@ -162,13 +162,22 @@ private fun rememberAppTheme(): AppTheme {
 	return appTheme
 }
 
+/**
+ * Provide the preference colors of the current app theme to [content], for panels that are
+ * styled like the preference screens.
+ */
 @Composable
-fun PreferencesRoot(content: @Composable () -> Unit) {
+fun ProvidePreferenceColors(content: @Composable () -> Unit) {
 	val context = LocalContext.current
 	val appTheme = rememberAppTheme()
 	val colors = remember(appTheme) { resolvePreferenceColors(context, appTheme) }
 
-	CompositionLocalProvider(LocalPreferenceColors provides colors) {
+	CompositionLocalProvider(LocalPreferenceColors provides colors, content = content)
+}
+
+@Composable
+fun PreferencesRoot(content: @Composable () -> Unit) {
+	ProvidePreferenceColors {
 		PreferencesPanel(content)
 	}
 }

@@ -102,6 +102,9 @@ public class PlaybackController implements PlaybackControllerNotifiable {
     private boolean isLiveTv = false;
     private boolean directStreamLiveTv;
     private int playbackRetries = 0;
+    // Subtitle track explicitly requested for the next start of playback, overriding the preferred one
+    @Nullable
+    private Integer mRequestedSubtitleIndex = null;
     private long lastPlaybackError = 0;
 
     private Display.Mode[] mDisplayModes;
@@ -421,6 +424,7 @@ public class PlaybackController implements PlaybackControllerNotifiable {
                 break;
             case IDLE:
                 // start new playback
+                mRequestedSubtitleIndex = forcedSubtitleIndex;
 
                 // set mSeekPosition so the seekbar will not default to 0:00
                 mSeekPosition = position;
@@ -742,7 +746,8 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
         // Get subtitle info and try to find a matching track based on user preferences
         MediaSourceInfo mediaSource = response.getMediaSource();
-        Integer preferredSubtitleIndex = findPreferredSubtitleTrack(mediaSource);
+        Integer preferredSubtitleIndex = mRequestedSubtitleIndex != null ? mRequestedSubtitleIndex : findPreferredSubtitleTrack(mediaSource);
+        mRequestedSubtitleIndex = null;
         mCurrentOptions.setSubtitleStreamIndex(preferredSubtitleIndex);
         setDefaultAudioIndex(response);
 
@@ -990,6 +995,16 @@ public class PlaybackController implements PlaybackControllerNotifiable {
 
         stop();
         play(mCurrentPosition);
+    }
+
+    /**
+     * Restart the stream to pick up a subtitle that was added to the item, and switch to it.
+     */
+    public void reloadWithSubtitle(int subtitleIndex) {
+        refreshCurrentPosition();
+        long position = mCurrentPosition;
+        stop();
+        play(position, subtitleIndex);
     }
 
     public void endPlayback(Boolean closeActivity) {

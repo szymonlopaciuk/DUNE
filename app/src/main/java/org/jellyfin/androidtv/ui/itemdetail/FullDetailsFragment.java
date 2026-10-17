@@ -55,7 +55,6 @@ import org.jellyfin.androidtv.preference.UserPreferences;
 import org.jellyfin.androidtv.preference.constant.ClockBehavior;
 import org.jellyfin.androidtv.ui.RecordPopup;
 import org.jellyfin.androidtv.ui.RecordingIndicatorView;
-import org.jellyfin.androidtv.ui.SubtitleManagementPopup;
 import org.jellyfin.androidtv.ui.shared.buttons.DetailButton;
 import org.jellyfin.androidtv.ui.browsing.BrowsingUtils;
 import org.jellyfin.androidtv.ui.itemhandling.BaseRowItem;
@@ -71,6 +70,9 @@ import org.jellyfin.androidtv.ui.presentation.CustomListRowPresenter;
 import org.jellyfin.androidtv.ui.presentation.InfoCardPresenter;
 import org.jellyfin.androidtv.ui.presentation.MutableObjectAdapter;
 import org.jellyfin.androidtv.ui.presentation.MyDetailsOverviewRowPresenter;
+import org.jellyfin.androidtv.ui.subtitle.RemoteSubtitleDownload;
+import org.jellyfin.androidtv.ui.subtitle.RemoteSubtitlesKt;
+import org.jellyfin.androidtv.ui.subtitle.SubtitleSearchDialog;
 import org.jellyfin.androidtv.util.CoroutineUtils;
 import org.jellyfin.androidtv.util.DateTimeExtensionsKt;
 import org.jellyfin.androidtv.util.ImageHelper;
@@ -1205,16 +1207,16 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
 
         }
 
-        if (BaseItemExtensionsKt.canPlay(mBaseItem) && mBaseItem.getId() != null) {
-            DetailButton pluginButton = DetailButton.create(requireContext(),
+        if (RemoteSubtitlesKt.supportsRemoteSubtitles(mBaseItem, KoinJavaComponent.<UserRepository>get(UserRepository.class).getCurrentUser().getValue())) {
+            DetailButton subtitlesButton = DetailButton.create(requireContext(),
                     R.drawable.ic_select_subtitle,
                 getString(R.string.pref_subtitles), new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        interactWithServerPlugin();
+                        showSubtitleSearch();
                     }
                 });
-            mDetailsOverviewRow.addAction(pluginButton);
+            mDetailsOverviewRow.addAction(subtitlesButton);
         }
 
         //Now, create a more button to show if needed
@@ -1399,19 +1401,14 @@ public class FullDetailsFragment extends Fragment implements RecordingIndicatorV
         KoinJavaComponent.<PlaybackLauncher>get(PlaybackLauncher.class).launch(getContext(), items, pos);
     }
 
-    private void interactWithServerPlugin() {
-        if (mBaseItem == null || mBaseItem.getId() == null) {
-            Utils.showToast(requireContext(), "Item not available");
-            return;
-        }
+    private void showSubtitleSearch() {
+        if (mBaseItem == null) return;
 
-        SubtitleManagementPopup popup = new SubtitleManagementPopup(
-            requireContext(),
-            getLifecycle(),
-            mRowsFragment.getView(),
-            mBaseItem
-        );
-        popup.show();
+        new SubtitleSearchDialog(requireContext(), mBaseItem, null, result -> {
+            if (result instanceof RemoteSubtitleDownload.Added) {
+                mBaseItem = ((RemoteSubtitleDownload.Added) result).getItem();
+            }
+        }).show();
     }
 
     private void refreshItemDetails() {
