@@ -1333,8 +1333,15 @@ public class CustomPlaybackOverlayFragment extends Fragment implements LiveTvGui
                 binding.itemLogo.setVisibility(View.VISIBLE);
                 binding.itemLogo.setContentDescription(current.getName());
                 binding.itemLogo.load(imageUrl, null, null, 1.0, 0);
+                binding.itemTitle.setVisibility(View.GONE);
             } else {
                 binding.itemLogo.setVisibility(View.GONE);
+                // Episodes show their own name in the subtitle, so title them with the series
+                String title = current.getType() == BaseItemKind.EPISODE && current.getSeriesName() != null
+                        ? current.getSeriesName()
+                        : current.getName();
+                binding.itemTitle.setText(title);
+                binding.itemTitle.setVisibility(View.VISIBLE);
             }
 
             if (playbackControllerContainer.getValue().getPlaybackController().isLiveTv()) {

@@ -75,8 +75,33 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/item_logo"
+            app:layout_constraintTop_toBottomOf="@id/item_heading"
             tools:text="Subtitle" />
+
+        <!-- Shown instead of the logo when the item doesn't have one -->
+        <TextView
+            android:id="@+id/item_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:layout_marginEnd="24dp"
+            android:ellipsize="end"
+            android:fontFamily="?attr/appFontFamilyMedium"
+            android:maxLines="2"
+            android:textColor="@color/white"
+            android:textSize="28sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@id/textClock"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Title" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/item_heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="item_logo,item_title" />
 
         <org.jellyfin.androidtv.ui.AsyncImageView
             android:id="@+id/item_logo"
