@@ -11,6 +11,9 @@ enum class GridDirection(
 	 */
 	VERTICAL(R.string.grid_direction_vertical),
 
+	/** Horizontal rows. */
+	HORIZONTAL(R.string.grid_direction_horizontal),
+
 	/**
 	 * List.
 	 */

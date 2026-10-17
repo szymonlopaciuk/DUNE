@@ -6,6 +6,10 @@ import org.jellyfin.preference.PreferenceEnum
 enum class PosterSize(
 	override val nameRes: Int,
 ) : PreferenceEnum {
+	SMALLEST(R.string.image_size_smallest),
+
+	SMALL(R.string.image_size_small),
+
 	/**
 	 * Medium.
 	 */
