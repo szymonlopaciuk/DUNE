@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
 	id("com.android.application")
 	kotlin("android")
@@ -10,6 +12,12 @@ java {
 	toolchain {
 		languageVersion.set(JavaLanguageVersion.of(21))
 	}
+}
+
+// Release signing is read from keystore.properties in the project root (not committed), with
+// storeFile, storePassword, keyAlias and keyPassword. Without it release builds are unsigned.
+val keystoreProperties = rootProject.file("keystore.properties").takeIf { it.exists() }?.let { file ->
+	Properties().apply { file.inputStream().use { load(it) } }
 }
 
 android {
@@ -51,9 +59,19 @@ android {
 		}
 	}
 
+	signingConfigs {
+		if (keystoreProperties != null) create("release") {
+			storeFile = file(keystoreProperties.getProperty("storeFile"))
+			storePassword = keystoreProperties.getProperty("storePassword")
+			keyAlias = keystoreProperties.getProperty("keyAlias")
+			keyPassword = keystoreProperties.getProperty("keyPassword")
+		}
+	}
+
 	buildTypes {
 		val release by getting {
 			isMinifyEnabled = false
+			signingConfig = signingConfigs.findByName("release")
 
 			// Set flavored application name
 			resValue("string", "app_name", "@string/app_name_release")

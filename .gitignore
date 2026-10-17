@@ -131,3 +131,6 @@ app/enhanced/release/baselineProfiles/0/Dune.androidtv-0.0.8-enhanced-release.dm
 app/enhanced/release/output-metadata.json
 app/enhanced/release/baselineProfiles/1/Dune.androidtv-0.0.8-enhanced-release.dm
 .vscode/settings.json
+
+# Release signing configuration
+keystore.properties
