@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import androidx.leanback.widget.BaseGridView
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -88,6 +89,8 @@ class HomeFragment : Fragment() {
     private var isGenreCarouselSelected = false
     private var gridBasePaddingTop: Int? = null
     private var rowsCollapsedTop = 0
+    // How far the rows are lifted when a genre carousel is selected
+    private var rowsLiftDistance = 0
     private var rowsExpandProgress = 0f
     private var rowsExpandAnimator: android.animation.ValueAnimator? = null
     private var focusChangeListener: android.view.ViewTreeObserver.OnGlobalFocusChangeListener? = null
@@ -609,10 +612,11 @@ class HomeFragment : Fragment() {
     /**
      * The rows fill the space below the toolbar, but normally only their bottom part (the height
      * of [collapsedRowsHeightDp]) is shown, with the area above it left to the carousel or info
-     * panel. The grid aligns the selected row to the middle of that bottom part (with top padding
-     * so the first row stops at its top edge), and the rest is clipped. With a genre carousel
-     * selected the clip is animated away and the rows lifted, centering the carousel with the row
-     * above it visible. Nothing is re-laid out, so moving between rows stays a plain scroll.
+     * panel. The grid aligns the top of the selected row to the top of that bottom part (where
+     * the top padding puts the first row), and the rest is clipped. With a genre carousel
+     * selected the clip is animated away and the rows lifted, putting the carousel in the middle
+     * with the row above it visible. Nothing is re-laid out, so moving between rows stays a plain
+     * scroll.
      */
     private fun setupRowsWindow(contentView: View) {
         contentView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyRowsWindow(animate = false) }
@@ -635,13 +639,27 @@ class HomeFragment : Fragment() {
                 grid.setPadding(grid.paddingLeft, paddingTop, grid.paddingRight, grid.paddingBottom)
             }
 
-            // Leanback's keyline ignores padding: it's offset + percent of the full height. Center
-            // it on the visible bottom part: collapsedTop + (height - collapsedTop) / 2
-            val alignmentOffset = collapsedTop / 2
-            if (grid.windowAlignmentOffset != alignmentOffset || grid.windowAlignmentOffsetPercent != 50f) {
-                grid.windowAlignmentOffset = alignmentOffset
-                grid.windowAlignmentOffsetPercent = 50f
+            // Align rows by the top of their title. Leanback aligns list rows by the top of their
+            // cards by default, which leaves their titles above the visible part, cut off by the
+            // clip. List rows overlap the row above with a negative top padding (home_row_spacing)
+            // that their title is drawn in, so include the padding.
+            // (leanback only adds the padding with an offset percent of exactly 0)
+            if (grid.itemAlignmentViewId != View.NO_ID || grid.itemAlignmentOffsetPercent != 0f) {
+                grid.itemAlignmentViewId = View.NO_ID
+                grid.itemAlignmentOffset = 0
+                grid.itemAlignmentOffsetPercent = 0f
+                grid.isItemAlignmentOffsetWithPadding = true
             }
+
+            // Leanback's keyline ignores padding, it's measured from the top of the grid
+            val alignmentOffset = paddingTop + (ROW_TITLE_MARGIN_DP * resources.displayMetrics.density).roundToInt()
+            if (grid.windowAlignmentOffset != alignmentOffset || grid.windowAlignmentOffsetPercent != BaseGridView.WINDOW_ALIGN_OFFSET_PERCENT_DISABLED) {
+                grid.windowAlignmentOffset = alignmentOffset
+                grid.windowAlignmentOffsetPercent = BaseGridView.WINDOW_ALIGN_OFFSET_PERCENT_DISABLED
+            }
+
+            // Lift the selected (genre carousel) row from the keyline to the middle of the rows
+            rowsLiftDistance = alignmentOffset - grid.height / 2
         }
 
         rowsCollapsedTop = collapsedTop
@@ -691,8 +709,7 @@ class HomeFragment : Fragment() {
         contentView.clipBounds = bounds
 
         val rowsFragment = childFragmentManager.findFragmentById(R.id.content_view) as? HomeRowsFragment
-        // The selected row is centered on the bottom part; lift it to the middle of the rows
-        rowsFragment?.verticalGridView?.translationY = -collapsedTop / 2f * progress
+        rowsFragment?.verticalGridView?.translationY = -rowsLiftDistance * progress
     }
 
     private fun fadeTo(target: View?, visible: Boolean) {
@@ -749,5 +766,8 @@ class HomeFragment : Fragment() {
 
     private companion object {
         const val CROSSFADE_DURATION_MS = 200L
+
+        // Space between the top of the visible rows and the selected row's title
+        const val ROW_TITLE_MARGIN_DP = 4
     }
 }
