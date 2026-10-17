@@ -208,7 +208,7 @@ fun FeaturedCarousel(
 	LaunchedEffect(isPaused, autoScrollEnabled, focusBlocksAutoScroll) {
 		if (items.size > 1 && autoScrollEnabled && !focusBlocksAutoScroll && !isPaused) {
 			while (true) {
-				kotlinx.coroutines.delay(8000L) // 8 seconds delay
+				kotlinx.coroutines.delay(4000L) // 4 seconds delay
 
 				if (autoScrollEnabled && !focusBlocksAutoScroll && !isPaused) {
 					val newIndex = (currentIndex + 1) % items.size
