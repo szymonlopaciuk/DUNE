@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -438,7 +437,6 @@ private fun PanelItem(
 		modifier = modifier
 			.fillMaxWidth()
 			.clip(shape)
-			.focusable(interactionSource = interactionSource)
 			.clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
 			.border(width = if (focused) 1.5.dp else 0.dp, color = if (focused) Colors.FocusedBorder else Color.Transparent, shape = shape)
 			.background(if (focused) Colors.FocusedOverlay else Colors.Surface, shape)
