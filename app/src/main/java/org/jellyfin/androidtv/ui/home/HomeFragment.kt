@@ -658,8 +658,12 @@ class HomeFragment : Fragment() {
                 grid.windowAlignmentOffsetPercent = BaseGridView.WINDOW_ALIGN_OFFSET_PERCENT_DISABLED
             }
 
-            // Lift the selected (genre carousel) row from the keyline to the middle of the rows
-            rowsLiftDistance = alignmentOffset - grid.height / 2
+            // Lift the selected (genre carousel) row from the keyline so it's centered in the
+            // rows. Keep the last distance while collapsing, the selection has moved on by then.
+            val selectedHeight = grid.findViewHolderForAdapterPosition(grid.selectedPosition)?.itemView?.height
+            if (topAreaMode == TopAreaMode.ROWS_EXPANDED && selectedHeight != null && selectedHeight > 0) {
+                rowsLiftDistance = alignmentOffset - (grid.height - selectedHeight) / 2
+            }
         }
 
         rowsCollapsedTop = collapsedTop
