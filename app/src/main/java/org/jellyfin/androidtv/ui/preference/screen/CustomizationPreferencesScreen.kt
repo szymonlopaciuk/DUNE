@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -197,13 +198,30 @@ fun CustomizationPreferencesScreenCompose(
 				preference = userSettingPreferences.useClassicHomeScreen,
 				preferences = userSettingPreferences
 			)
-			SwitchPreference(
-				title = context.getString(R.string.use_classic_home_screen),
-				description = context.getString(R.string.use_classic_home_screen_summary),
-				checked = useClassicHomeScreen,
-				preference = userSettingPreferences.useClassicHomeScreen,
-				onCheckedChange = setUseClassicHomeScreen
+			val (shuffleHomeCategories, setShuffleHomeCategories) = rememberPreferenceState(
+				preference = userSettingPreferences.shuffleHomeCategories,
+				preferences = userSettingPreferences
 			)
+			Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+				SwitchPreference(
+					title = context.getString(R.string.use_classic_home_screen),
+					description = context.getString(R.string.use_classic_home_screen_summary),
+					checked = useClassicHomeScreen,
+					preference = userSettingPreferences.useClassicHomeScreen,
+					onCheckedChange = setUseClassicHomeScreen
+				)
+
+				// Only the modern home screen has carousels
+				if (!useClassicHomeScreen) {
+					SwitchPreference(
+						title = context.getString(R.string.shuffle_home_categories),
+						description = context.getString(R.string.shuffle_home_categories_summary),
+						checked = shuffleHomeCategories,
+						preference = userSettingPreferences.shuffleHomeCategories,
+						onCheckedChange = setShuffleHomeCategories
+					)
+				}
+			}
 		}
 
         item {

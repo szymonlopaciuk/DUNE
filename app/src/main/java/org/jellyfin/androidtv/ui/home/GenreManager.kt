@@ -46,6 +46,9 @@ class GenreManager(
 	companion object {
 		private const val GENRE_CARD_HEIGHT = 140
 		private const val CACHE_EXPIRY_MS = 5 * 60 * 1000L // 5 minutes
+
+		// With shuffled categories, every third row is shown as a carousel
+		private const val CAROUSEL_INTERVAL = 3
 	}
 
 	data class GenreConfig(
@@ -103,11 +106,25 @@ class GenreManager(
 				return@withContext
 			}
 
-			enabledGenres.forEach { config ->
-				try {
-					loadSingleGenreRow(config, cardPresenter, rowsAdapter)
-				} catch (e: Exception) {
-					Timber.e(e, "Error loading genre row: ${config.displayName}")
+			val shuffle = !userSettingPreferences[userSettingPreferences.useClassicHomeScreen] &&
+				userSettingPreferences[userSettingPreferences.shuffleHomeCategories]
+
+			if (!shuffle) {
+				enabledGenres.forEach { config -> loadSingleGenreRow(config, cardPresenter, rowsAdapter) }
+			} else {
+				// Every third row is a carousel. When the row in that place can't be one (it's not a
+				// genre, or has nothing to show), the next one that can takes its place.
+				var rowCount = 0
+				var carouselDue = false
+				enabledGenres.shuffled().forEach { config ->
+					if ((rowCount + 1) % CAROUSEL_INTERVAL == 0) carouselDue = true
+					val displayMode = if (carouselDue && config.section.isGenre) HomeSectionDisplayMode.CAROUSEL
+					else HomeSectionDisplayMode.ROW
+
+					if (loadSingleGenreRow(config.copy(displayMode = displayMode), cardPresenter, rowsAdapter)) {
+						rowCount++
+						if (displayMode == HomeSectionDisplayMode.CAROUSEL) carouselDue = false
+					}
 				}
 			}
 
@@ -118,11 +135,14 @@ class GenreManager(
 		}
 	}
 
+	/**
+	 * Load the row of a genre or category and add it to the rows. Returns whether a row was added.
+	 */
 	private suspend fun loadSingleGenreRow(
 		config: GenreConfig,
 		cardPresenter: CardPresenter,
 		rowsAdapter: MutableObjectAdapter<Row>
-	) {
+	): Boolean {
 		val rowStartTime = System.currentTimeMillis()
 		try {
 			Timber.d("Loading ${config.displayName} ${config.displayMode}")
@@ -138,7 +158,7 @@ class GenreManager(
 
 			if (row == null) {
 				Timber.d("No matching ${config.displayName} items found in library")
-				return
+				return false
 			}
 
 			withContext(Dispatchers.Main) {
@@ -147,9 +167,10 @@ class GenreManager(
 
 			val rowLoadTime = System.currentTimeMillis() - rowStartTime
 			Timber.d("Successfully added ${config.displayName} row in ${rowLoadTime}ms")
-
+			return true
 		} catch (e: Exception) {
 			Timber.e(e, "Error loading ${config.displayName} row")
+			return false
 		}
 	}
 

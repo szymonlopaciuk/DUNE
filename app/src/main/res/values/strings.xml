@@ -49,6 +49,8 @@
     <string name="home_content_description">Home screen content</string>
     <string name="use_classic_home_screen">Home Screen layout</string>
     <string name="use_classic_home_screen_summary">Switch between classic and modern home screen layout</string>
+    <string name="shuffle_home_categories">Shuffle categories</string>
+    <string name="shuffle_home_categories_summary">Show the genre and category rows in a random order, with every third one as a carousel</string>
     <string name="pref_home_description">Configure shown sections</string>
 
     <!-- Home Sections -->

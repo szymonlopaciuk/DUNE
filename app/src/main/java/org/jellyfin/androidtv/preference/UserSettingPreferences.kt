@@ -37,6 +37,9 @@ class UserSettingPreferences(context: Context) : SharedPreferenceStore(
     val showRandomButton = booleanPreference("show_masks_button", true)
     val useClassicHomeScreen = booleanPreference("use_classic_home_screen", false)
 
+    // Show the genre and category rows of the modern home screen in a random order
+    val shuffleHomeCategories = booleanPreference("shuffle_home_categories", false)
+
     // Optional home rows
     val showMusicVideosRow = booleanPreference("show_music_videos_row", false)
 
