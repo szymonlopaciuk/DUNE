@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.Typeface
@@ -111,9 +112,15 @@ private fun loadFontFamily(context: android.content.Context, fontRes: Int): Font
 	null
 }
 
-// Replace generic fonts only (Material's typographies use sans-serif), keep deliberately chosen ones
+// Replace generic fonts only (Material's typographies use sans-serif), keep deliberately chosen ones.
+// Font padding is sized from the font's bounding box, which for fonts with deep glyphs (e.g. Google
+// Sans) leaves a large gap under the text, so turn it off like the AppFont theme overlays do.
+@Suppress("DEPRECATION")
 private fun TextStyle.withFontFamily(fontFamily: FontFamily) = when (this.fontFamily) {
-	null, FontFamily.Default, FontFamily.SansSerif -> copy(fontFamily = fontFamily)
+	null, FontFamily.Default, FontFamily.SansSerif -> copy(
+		fontFamily = fontFamily,
+		platformStyle = PlatformTextStyle(includeFontPadding = false),
+	)
 	else -> this
 }
 

@@ -8,6 +8,10 @@
         weight or width use the appFontFamily* attributes instead of naming a system font.
         Fonts only come in regular, medium and bold, so thin and light use regular, and
         condensed uses the regular width.
+
+        Font padding is turned off: it's sized from the font's bounding box, which for fonts
+        with deep glyphs (e.g. Google Sans) leaves a large gap under the text and pushes it
+        off center.
     -->
     <style name="AppFont" parent="" />
 
@@ -15,6 +19,7 @@
     <style name="AppFont.System" />
 
     <style name="AppFont.Roboto">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="fontFamily">@font/roboto</item>
         <item name="appFontFamilyRegular">@font/roboto</item>
@@ -25,6 +30,7 @@
     </style>
 
     <style name="AppFont.GoogleSans">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/google_sans</item>
         <item name="fontFamily">@font/google_sans</item>
         <item name="appFontFamilyRegular">@font/google_sans</item>
@@ -35,6 +41,7 @@
     </style>
 
     <style name="AppFont.Inter">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/inter</item>
         <item name="fontFamily">@font/inter</item>
         <item name="appFontFamilyRegular">@font/inter</item>
@@ -45,6 +52,7 @@
     </style>
 
     <style name="AppFont.Overpass">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/overpass</item>
         <item name="fontFamily">@font/overpass</item>
         <item name="appFontFamilyRegular">@font/overpass</item>
@@ -55,6 +63,7 @@
     </style>
 
     <style name="AppFont.Bangers">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/bangers</item>
         <item name="fontFamily">@font/bangers</item>
         <item name="appFontFamilyRegular">@font/bangers</item>
@@ -65,6 +74,7 @@
     </style>
 
     <style name="AppFont.BebasNeue">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/bebas_neue</item>
         <item name="fontFamily">@font/bebas_neue</item>
         <item name="appFontFamilyRegular">@font/bebas_neue</item>
@@ -75,6 +85,7 @@
     </style>
 
     <style name="AppFont.BagelFatOne">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/bagel_fat_one</item>
         <item name="fontFamily">@font/bagel_fat_one</item>
         <item name="appFontFamilyRegular">@font/bagel_fat_one</item>
@@ -85,6 +96,7 @@
     </style>
 
     <style name="AppFont.FugazOne">
+        <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">@font/fugaz_one</item>
         <item name="fontFamily">@font/fugaz_one</item>
         <item name="appFontFamilyRegular">@font/fugaz_one</item>
