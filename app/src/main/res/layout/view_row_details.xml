@@ -11,13 +11,6 @@
         tools:layout_editor_absoluteY="29dp">
 
         <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guide_top"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.35" />
-
-        <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide_left_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -152,19 +145,20 @@
 
         </LinearLayout>
 
+        <!-- Spans from the info line to the buttons, independent of the row height (rows are
+             measured at their content height), so tall posters scale down instead of
+             pushing the image down over the buttons -->
         <FrameLayout
             android:id="@+id/frameLayout"
             android:layout_width="181dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginBottom="12dp"
             android:minWidth="320dp"
-            android:minHeight="180dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="16:9"
+            app:layout_constraintBottom_toTopOf="@+id/fdButtonRow"
             app:layout_constraintEnd_toEndOf="@id/guide_right_end"
             app:layout_constraintHorizontal_bias="0.702"
             app:layout_constraintStart_toStartOf="@+id/guide_main_end"
-            app:layout_constraintTop_toTopOf="@+id/guide_top"
-            app:layout_constraintVertical_bias="0.0">
+            app:layout_constraintTop_toTopOf="@+id/infoTitle1">
 
             <org.jellyfin.androidtv.ui.AsyncImageView
                 android:id="@+id/mainImage"
